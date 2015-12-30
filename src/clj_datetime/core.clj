@@ -5,7 +5,7 @@
    specifying the year, month, day, hour, minute, second, and millisecond:
 
      => (date-time 1986 10 14 4 3 27 456)
-     #<DateTime 1986-10-14T04:03:27.456Z>
+     #<ZonedDateTime 1986-10-14T04:03:27.456Z>
 
      => (local-date-time 1986 10 14 4 3 27 456)
      #<LocalDateTime 1986-10-14T04:03:27.456>
@@ -13,7 +13,7 @@
    Less-significant fields can be omitted:
 
      => (date-time 1986 10 14)
-     #<DateTime 1986-10-14T00:00:00.000Z>
+     #<ZonedDateTime 1986-10-14T00:00:00.000Z>
 
      => (local-date-time 1986 10 14)
      #<LocalDateTime 1986-10-14T00:00:00.000>
@@ -34,20 +34,20 @@
    from-time-zone:
 
      => (from-time-zone (date-time 1986 10 22) (time-zone-for-offset -2))
-     #<DateTime 1986-10-22T00:00:00.000-02:00>
+     #<ZonedDateTime 1986-10-22T00:00:00.000-02:00>
 
    If on the other hand you want a given absolute instant in time in a
    different time zone, use to-time-zone:
 
      => (to-time-zone (date-time 1986 10 22) (time-zone-for-offset -2))
-     #<DateTime 1986-10-21T22:00:00.000-02:00>
+     #<ZonedDateTime 1986-10-21T22:00:00.000-02:00>
 
    In addition to time-zone-for-offset, you can use the time-zone-for-id and
    default-time-zone functions and the utc Var to construct or get DateTimeZone
    instances.
 
    The functions after? and before? determine the relative position of two
-   DateTime instances:
+   ZonedDateTime instances:
 
      => (after? (date-time 1986 10) (date-time 1986 9))
      true
@@ -59,7 +59,7 @@
    example, to find the time 1 month and 3 weeks from a given date-time:
 
      => (plus (date-time 1986 10 14) (months 1) (weeks 3))
-     #<DateTime 1986-12-05T00:00:00.000Z>
+     #<ZonedDateTime 1986-12-05T00:00:00.000Z>
 
      => (plus (local-date-time 1986 10 14) (months 1) (weeks 3))
      #<LocalDateTime 1986-12-05T00:00:00.000Z>
@@ -89,12 +89,20 @@
    you need to print or parse date-times, see clj-time.format. If you need to
    coerce date-times to or from other types, see clj-time.coerce."
   (:refer-clojure :exclude [extend second])
-  (:import [org.joda.time ReadablePartial ReadableDateTime ReadableInstant
-                          ReadablePeriod DateTime DateMidnight YearMonth
-                          LocalDate LocalTime DateTimeZone Period PeriodType
-                          Interval Years Months Weeks Days Hours Minutes Seconds
-                          LocalDateTime MutableDateTime DateTimeUtils]
-           [org.joda.time.base BaseDateTime]))
+  (:import [java.time Instant ZoneId LocalDateTime LocalTime LocalDate
+                      ZonedDateTime ZoneId ZoneOffset ZoneRegion
+                      Month MonthDay Year
+                      Period Duration]
+            [java.time.temporal TemporalAmount]
+            [java.time.chrono ChronoZonedDateTime ChronoLocalDateTime]
+    ;[org.joda.time ReadablePartial ReadableDateTime ReadableInstant
+    ;                      ReadablePeriod DateTime DateMidnight YearMonth
+    ;                      LocalDate LocalTime DateTimeZone Period PeriodType
+    ;                      Interval Years Months Weeks Days Hours Minutes Seconds
+    ;                      LocalDateTime MutableDateTime DateTimeUtils]
+    ;
+    ;       [org.joda.time.base BaseDateTime]
+           ))
 
 (defn deprecated [message]
   (println "DEPRECATION WARNING: " message))
@@ -113,9 +121,9 @@
   (equal? [this that] "Returns true if ReadableDateTime 'this' is strictly equal to date/time 'that'.")
   (after? [this that] "Returns true if ReadableDateTime 'this' is strictly after date/time 'that'.")
   (before? [this that] "Returns true if ReadableDateTime 'this' is strictly before date/time 'that'.")
-  (plus- [this ^ReadablePeriod period]
+  (plus- [this ^TemporalAmount period]
     "Returns a new date/time corresponding to the given date/time moved forwards by the given Period(s).")
-  (minus- [this ^ReadablePeriod period]
+  (minus- [this ^TemporalAmount period]
     "Returns a new date/time corresponding to the given date/time moved backwards by the given Period(s).")
   (first-day-of-the-month- [this] "Returns the first day of the month")
   (last-day-of-the-month- [this] "Returns the last day of the month")
@@ -133,7 +141,7 @@
   (in-years [this] "Return the time in years"))
 
 (extend-protocol DateTimeProtocol
-  org.joda.time.DateTime
+  java.time.ZonedDateTime
   (year [this] (.getYear this))
   (month [this] (.getMonthOfYear this))
   (day [this] (.getDayOfMonth this))
@@ -146,19 +154,19 @@
     (.getSecondOfMinute this))
   (second [this] (.getSecondOfMinute this))
   (milli [this] (.getMillisOfSecond this))
-  (equal? [this ^ReadableInstant that] (.isEqual this that))
-  (after? [this ^ReadableInstant that] (.isAfter this that))
-  (before? [this ^ReadableInstant that] (.isBefore this that))
-  (plus- [this ^ReadablePeriod period] (.plus this period))
-  (minus- [this ^ReadablePeriod period] (.minus this period))
+  (equal? [this ^ChronoZonedDateTime that] (.isEqual this that))
+  (after? [this ^ChronoZonedDateTime that] (.isAfter this that))
+  (before? [this ^ChronoZonedDateTime that] (.isBefore this that))
+  (plus- [this ^TemporalAmount period] (.plus this period))
+  (minus- [this ^TemporalAmount period] (.minus this period))
   (first-day-of-the-month- [this]
-    (.. ^DateTime this dayOfMonth withMinimumValue))
+    (.. ^ZonedDateTime this dayOfMonth withMinimumValue))
   (last-day-of-the-month- [this]
-     (.. ^DateTime this dayOfMonth withMaximumValue))
+     (.. ^ZonedDateTime this dayOfMonth withMaximumValue))
   (week-number-of-year [this]
     (.getWeekOfWeekyear this))
 
-  org.joda.time.DateMidnight
+  java.time.LocalDateTime
   (year [this] (.getYear this))
   (month [this] (.getMonthOfYear this))
   (day [this] (.getDayOfMonth this))
@@ -171,36 +179,11 @@
     (.getSecondOfMinute this))
   (second [this] (.getSecondOfMinute this))
   (milli [this] (.getMillisOfSecond this))
-  (equal? [this ^ReadableInstant that] (.isEqual this that))
-  (after? [this ^ReadableInstant that] (.isAfter this that))
-  (before? [this ^ReadableInstant that] (.isBefore this that))
-  (plus- [this ^ReadablePeriod period] (.plus this period))
-  (minus- [this ^ReadablePeriod period] (.minus this period))
-  (first-day-of-the-month- [this]
-    (.. ^DateMidnight this dayOfMonth withMinimumValue))
-  (last-day-of-the-month- [this]
-     (.. ^DateMidnight this dayOfMonth withMaximumValue))
-  (week-number-of-year [this]
-    (.getWeekOfWeekyear this))
-
-  org.joda.time.LocalDateTime
-  (year [this] (.getYear this))
-  (month [this] (.getMonthOfYear this))
-  (day [this] (.getDayOfMonth this))
-  (day-of-week [this] (.getDayOfWeek this))
-  (hour [this] (.getHourOfDay this))
-  (minute [this] (.getMinuteOfHour this))
-  (sec [this]
-    {:deprecated "0.6.0"}
-    (deprecated "sec is being deprecated in favor of second")
-    (.getSecondOfMinute this))
-  (second [this] (.getSecondOfMinute this))
-  (milli [this] (.getMillisOfSecond this))
-  (equal? [this ^ReadablePartial that] (.isEqual this that))
-  (after? [this ^ReadablePartial that] (.isAfter this that))
-  (before? [this ^ReadablePartial that] (.isBefore this that))
-  (plus- [this ^ReadablePeriod period] (.plus this period))
-  (minus- [this ^ReadablePeriod period] (.minus this period))
+  (equal? [this ^ChronoLocalDateTime that] (.isEqual this that))
+  (after? [this ^ChronoLocalDateTime that] (.isAfter this that))
+  (before? [this ^ChronoLocalDateTime that] (.isBefore this that))
+  (plus- [this ^ChronoLocalDateTime period] (.plus this period))
+  (minus- [this ^ChronoLocalDateTime period] (.minus this period))
   (first-day-of-the-month- [this]
     (.. ^LocalDateTime this dayOfMonth withMinimumValue))
   (last-day-of-the-month- [this]
@@ -208,25 +191,25 @@
   (week-number-of-year [this]
     (.getWeekOfWeekyear this))
 
-  org.joda.time.YearMonth
+  java.time.YearMonth
   (year [this] (.getYear this))
   (month [this] (.getMonthOfYear this))
-  (equal? [this ^ReadablePartial that] (.isEqual this that))
-  (after? [this ^ReadablePartial that] (.isAfter this that))
-  (before? [this ^ReadablePartial that] (.isBefore this that))
-  (plus- [this ^ReadablePeriod period] (.plus this period))
-  (minus- [this ^ReadablePeriod period] (.minus this period))
+  (equal? [this ^YearMonth that] (.isEqual this that))
+  (after? [this ^YearMonth that] (.isAfter this that))
+  (before? [this ^YearMonth that] (.isBefore this that))
+  ;(plus- [this ^YearMonth period] (.plus this period))
+  ;(minus- [this ^YearMonth period] (.minus this period))
 
-  org.joda.time.LocalDate
+  java.time.LocalDate
   (year [this] (.getYear this))
   (month [this] (.getMonthOfYear this))
   (day [this] (.getDayOfMonth this))
   (day-of-week [this] (.getDayOfWeek this))
-  (equal? [this ^ReadablePartial that] (.isEqual this that))
-  (after? [this ^ReadablePartial that] (.isAfter this that))
-  (before? [this ^ReadablePartial that] (.isBefore this that))
-  (plus- [this ^ReadablePeriod period] (.plus this period))
-  (minus- [this ^ReadablePeriod period] (.minus this period))
+  (equal? [this ^ChronoLocalDate that] (.isEqual this that))
+  (after? [this ^ChronoLocalDate that] (.isAfter this that))
+  (before? [this ^ChronoLocalDate that] (.isBefore this that))
+  (plus- [this ^TemporalAmount period] (.plus this period))
+  (minus- [this ^TemporalAmount period] (.minus this period))
   (first-day-of-the-month- [this]
     (.. ^LocalDate this dayOfMonth withMinimumValue))
   (last-day-of-the-month- [this]
@@ -234,16 +217,16 @@
   (week-number-of-year [this]
     (.getWeekOfWeekyear this))
 
-  org.joda.time.LocalTime
+  java.time.LocalTime
   (hour [this] (.getHourOfDay this))
   (minute [this] (.getMinuteOfHour this))
   (second [this] (.getSecondOfMinute this))
   (milli [this] (.getMillisOfSecond this))
-  (equal? [this ^ReadablePartial that] (.isEqual this that))
-  (after? [this ^ReadablePartial that] (.isAfter this that))
-  (before? [this ^ReadablePartial that] (.isBefore this that))
-  (plus- [this ^ReadablePeriod period] (.plus this period))
-  (minus- [this ^ReadablePeriod period] (.minus this period))
+  (equal? [this ^LocalTime that] (.isEqual this that))
+  (after? [this ^LocalTime that] (.isAfter this that))
+  (before? [this ^LocalTime that] (.isBefore this that))
+  (plus- [this ^TemporalAmount period] (.plus this period))
+  (minus- [this ^TemporalAmount period] (.minus this period))
   )
 
 (def ^{:doc "DateTimeZone for UTC."}
@@ -253,7 +236,7 @@
 (defn now
   "Returns a DateTime for the current instant in the UTC time zone."
   []
-  (DateTime. ^DateTimeZone utc))
+  (ZonedDateTime. ^DateTimeZone utc))
 
 (defn time-now
   "Returns a LocalTime for the current instant without date or time zone
@@ -721,7 +704,7 @@
   (^long [^long year ^long month]
          (day (last-day-of-the-month- (date-time year month)))))
 
-(defn ^DateTime today-at
+(defn ^ZonedDateTime today-at
   ([^long hours ^long minutes ^long seconds ^long millis]
      (let [^MutableDateTime mdt (.toMutableDateTime ^DateTime (now))]
        (.toDateTime (doto mdt
