@@ -1,4 +1,4 @@
-(ns clj-time.instant
+(ns clj-datetime.instant
     "An optional convenience namespaces that allows key JodaTime types
     to be transparently serialized with the Clojure reader (via instant literals)."
     )

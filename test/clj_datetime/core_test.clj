@@ -1,7 +1,7 @@
-(ns clj-time.core-test
+(ns clj-datetime.core-test
   (:refer-clojure :exclude [extend second])
   (:require [clojure.test :refer :all]
-            [clj-time.core :refer :all])
+            [clj-datetime.core :refer :all])
   (:import java.util.Date
            org.joda.time.DateTime))
 

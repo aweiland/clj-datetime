@@ -1,5 +1,5 @@
-(defproject clj-time/clj-time "0.12.0-SNAPSHOT"
-  :description "A date and time library for Clojure, wrapping Joda Time."
+(defproject clj-datetime/clj-datetime "0.1.0-SNAPSHOT"
+  :description "A date and time library for Clojure, wrapping Java 8 date/time library."
   :url "https://github.com/clj-time/clj-time"
   :mailing-list {:name "clj-time mailing list"
                  :archive "https://groups.google.com/forum/?fromgroups#!forum/clj-time"

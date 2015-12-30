@@ -1,7 +1,7 @@
-(ns clj-time.periodic-test
+(ns clj-datetime.periodic-test
   (:require [clojure.test :refer :all]
-            [clj-time.core :refer [date-time hours months]]
-            [clj-time.periodic :refer :all]))
+            [clj-datetime.core :refer [date-time hours months]]
+            [clj-datetime.periodic :refer :all]))
 
 (deftest test-periodic-sequence
   (let [d0 (date-time 2012 3 3 20 0)

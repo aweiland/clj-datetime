@@ -1,7 +1,7 @@
-(ns clj-time.predicates-test
+(ns clj-datetime.predicates-test
   (:refer-clojure :exclude [extend second])
   (:require [clojure.test :refer :all]
-            [clj-time [core :refer :all] [predicates :refer :all]]))
+            [clj-datetime [core :refer :all] [predicates :refer :all]]))
 
 (deftest test-days-of-the-week
   (is (= true (monday? (date-time 2012 9 10))))

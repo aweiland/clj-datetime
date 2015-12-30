@@ -1,7 +1,7 @@
-(ns clj-time.local-test
+(ns clj-datetime.local-test
   (:require [clojure.test :refer :all]
-            [clj-time [core :as time] [format :as fmt] [local :refer :all]]
-            [clj-time.core-test :refer [when-available when-not-available]])
+            [clj-datetime [core :as time] [format :as fmt] [local :refer :all]]
+            [clj-datetime.core-test :refer [when-available when-not-available]])
   (:import [org.joda.time.format ISODateTimeFormat]
            java.util.Date java.sql.Timestamp))
 

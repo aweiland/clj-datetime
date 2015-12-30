@@ -1,4 +1,4 @@
-(ns clj-time.format
+(ns clj-datetime.format
   "Utilities for parsing and unparsing DateTimes as Strings.
 
    Parsing and printing are controlled by formatters. You can either use one

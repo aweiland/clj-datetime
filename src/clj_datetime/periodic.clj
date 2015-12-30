@@ -1,5 +1,5 @@
-(ns clj-time.periodic
-  (:require [clj-time.core :as ct])
+(ns clj-datetime.periodic
+  (:require [clj-datetime.core :as ct])
   (:import [org.joda.time DateTime ReadablePeriod Period]))
 
 (defn periodic-seq

@@ -1,4 +1,4 @@
-(ns clj-time.internal.fn)
+(ns clj-datetime.internal.fn)
 
 ;;
 ;; API

@@ -1,4 +1,4 @@
-(ns clj-time.predicates
+(ns clj-datetime.predicates
   "Predicate functions to ask basic questions about a date
 
   Was it Monday?
@@ -6,8 +6,8 @@
 
   Is it January?
   (january? (clj-time.core/date-time 2011 1 1))"
-  (:require [clj-time.core :as time]
-            [clj-time.coerce :as coerce]))
+  (:require [clj-datetime.core :as time]
+            [clj-datetime.coerce :as coerce]))
 
 ;; days of the week
 (defn monday? [date-time]

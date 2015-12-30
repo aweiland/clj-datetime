@@ -1,4 +1,4 @@
-(ns clj-time.jdbc
+(ns clj-datetime.jdbc
   "clojure.java.jdbc protocol extensions supporting DateTime coercion.
 
   To use in your project, just require the namespace:

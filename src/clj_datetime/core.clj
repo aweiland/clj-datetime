@@ -1,5 +1,5 @@
-(ns clj-time.core
-  "The core namespace for date-time operations in the clj-time library.
+(ns clj-datetime.core
+  "The core namespace for date-time operations in the clj-datetime library.
 
    Create a DateTime instance with date-time (or a LocalDateTime instance with local-date-time),
    specifying the year, month, day, hour, minute, second, and millisecond:

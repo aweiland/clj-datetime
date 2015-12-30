@@ -1,4 +1,4 @@
-(ns clj-time.local
+(ns clj-datetime.local
   "Functions for working with local time without having to shift
    to/from utc, the preferred time zone of clj-time.core.
 

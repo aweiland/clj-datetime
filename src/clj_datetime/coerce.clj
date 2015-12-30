@@ -1,4 +1,4 @@
-(ns clj-time.coerce
+(ns clj-datetime.coerce
   "Utilites to coerce Joda DateTime instances to and from various other types.
    For example, to convert a Joda DateTime to and from a Java long:
 
@@ -12,6 +12,7 @@
             [clj-time.format :as time-fmt])
   (:import [java.sql Timestamp]
            [java.util Date]
+           [java.time Instant ZoneId LocalDateTime LocalDate ZonedDateTime ZoneId]
            [org.joda.time DateTime DateTimeZone DateMidnight YearMonth
                           LocalDate LocalDateTime]))
 
