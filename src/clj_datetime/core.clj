@@ -231,12 +231,12 @@
 
 (def ^{:doc "DateTimeZone for UTC."}
       utc
-  (DateTimeZone/UTC))
+  (ZoneId/of "Z"))
 
 (defn now
   "Returns a DateTime for the current instant in the UTC time zone."
   []
-  (ZonedDateTime. ^DateTimeZone utc))
+  (ZonedDateTime/now utc))
 
 (defn time-now
   "Returns a LocalTime for the current instant without date or time zone
@@ -247,14 +247,14 @@
 (defn today-at-midnight
   "Returns a DateMidnight for today at midnight in the UTC time zone."
   ([]
-   (DateMidnight. ^DateTimeZone utc))
-  ([^DateTimeZone tz]
-   (DateMidnight. tz)))
+   (today-at-midnight utc))
+  ([^ZoneId tz]
+   (.atStartOfDay (LocalDate.) tz)))
 
 (defn epoch
   "Returns a DateTime for the begining of the Unix epoch in the UTC time zone."
   []
-  (DateTime. (long 0) ^DateTimeZone utc))
+  (ZonedDateTime. (long 0) ^DateTimeZone utc))
 
 (defn date-midnight
   "Constructs and returns a new DateMidnight in UTC.
@@ -266,7 +266,7 @@
   ([^long year ^long month]
     (date-midnight year month 1))
   ([^Long year ^Long month ^Long day]
-    (DateMidnight. year month day ^DateTimeZone utc)))
+   (.atStartOfDay (LocalDate/of year month day) utc)))
 
 (defn min-date
   "Minimum of the provided DateTimes."
@@ -278,8 +278,8 @@
   [dt & dts]
   (reduce #(if (after? %1 %2) %1 %2) dt dts))
 
-(defn ^DateTime date-time
-  "Constructs and returns a new DateTime in UTC.
+(defn ^ZonedDateTime date-time
+  "Constructs and returns a new ZonedDateTime in UTC.
    Specify the year, month of year, day of month, hour of day, minute of hour,
    second of minute, and millisecond of second. Note that month and day are
    1-indexed while hour, second, minute, and millis are 0-indexed.
@@ -299,9 +299,9 @@
    (date-time year month day hour minute second 0))
   ([^Integer year ^Integer month ^Integer day ^Integer hour
     ^Integer minute ^Integer second ^Integer millis]
-   (DateTime. year month day hour minute second millis ^DateTimeZone utc)))
+   (ZonedDateTime/of year month day hour minute second millis ^ZoneId utc)))
 
-(defn ^org.joda.time.LocalDateTime local-date-time
+(defn ^java.time.LocalDateTime local-date-time
   "Constructs and returns a new LocalDateTime.
    Specify the year, month of year, day of month, hour of day, minute of hour,
    second of minute, and millisecond of second. Note that month and day are
@@ -324,20 +324,20 @@
     ^Integer minute ^Integer second ^Integer millis]
    (LocalDateTime. year month day hour minute second millis)))
 
-(defn ^org.joda.time.YearMonth year-month
+(defn ^java.time.YearMonth year-month
   "Constructs and returns a new YearMonth.
    Specify the year and month of year. Month is 1-indexed and defaults
    to January (1)."
   ([year]
      (year-month year 1))
   ([^Integer year ^Integer month]
-     (YearMonth. year month)))
+     (YearMonth/of year month)))
 
-(defn ^org.joda.time.LocalDate local-date
+(defn ^java.time.LocalDate local-date
   "Constructs and returns a new LocalDate.
    Specify the year, month, and day. Does not deal with timezones."
   [^Integer year ^Integer month ^Integer day]
-  (LocalDate. year month day))
+  (LocalDate/of year month day))
 
 (defn ^org.joda.time.LocalTime local-time
   "Constructs and returns a new LocalTime.
@@ -351,54 +351,54 @@
   ([hour minute second]
    (local-time hour minute second 0))
   ([^Integer hour ^Integer minute ^Integer second ^Integer millis]
-   (LocalTime. hour minute second millis))
+   (LocalTime/of hour minute second millis))
   )
 
-(defn ^org.joda.time.LocalDate today
+(defn ^java.time.LocalDate today
   "Constructs and returns a new LocalDate representing today's date.
    LocalDate objects do not deal with timezones at all."
   []
-  (LocalDate.))
+  (LocalDate/now))
 
 (defn time-zone-for-offset
-  "Returns a DateTimeZone for the given offset, specified either in hours or
+  "Returns a ZoneOffset for the given offset, specified either in hours or
    hours and minutes."
   ([hours]
-   (DateTimeZone/forOffsetHours hours))
+   (ZoneOffset/ofHours hours))
   ([hours minutes]
-   (DateTimeZone/forOffsetHoursMinutes hours minutes)))
+   (ZoneOffset/ofHoursMinutes hours minutes)))
 
 (defn time-zone-for-id
-  "Returns a DateTimeZone for the given ID, which must be in long form, e.g.
+  "Returns a ZoneId for the given ID, which must be in long form, e.g.
    'America/Matamoros'."
   [^String id]
-  (DateTimeZone/forID id))
+  (ZoneId/of id))
 
 (defn available-ids
   "Returns a set of available IDs for use with time-zone-for-id."
   []
-  (DateTimeZone/getAvailableIDs))
+  (ZoneId/getAvailableZoneIds))
 
 (defn default-time-zone
-  "Returns the default DateTimeZone for the current environment."
+  "Returns the default ZoneId for the current environment."
   []
-  (DateTimeZone/getDefault))
+  (ZoneId/systemDefault))
 
-(defn ^org.joda.time.DateTime
+(defn ^java.time.DateTime
   to-time-zone
-  "Returns a new ReadableDateTime corresponding to the same absolute instant in time as
-   the given ReadableDateTime, but with calendar fields corresponding to the given
-   TimeZone."
-  [^DateTime dt ^DateTimeZone tz]
-  (.withZone dt tz))
+  "Returns a new DateTime corresponding to the same absolute instant in time as
+   the given DateTime, but with calendar fields corresponding to the given
+   ZoneId."
+  [^ZonedDateTime dt ^ZoneId tz]
+  (.withZoneSameInstant dt tz))
 
-(defn ^org.joda.time.DateTime
+(defn ^java.time.DateTime
   from-time-zone
-  "Returns a new ReadableDateTime corresponding to the same point in calendar time as
-   the given ReadableDateTime, but for a correspondingly different absolute instant in
+  "Returns a new DateTime corresponding to the same point in calendar time as
+   the given DateTime, but for a correspondingly different absolute instant in
    time."
-  [^DateTime dt ^DateTimeZone tz]
-  (.withZoneRetainFields dt tz))
+  [^ZonedDateTime dt ^ZoneId tz]
+  (.withZoneSameLocal dt tz))
 
 (defn years
   "Given a number, returns a Period representing that many years.
@@ -406,7 +406,7 @@
   ([]
      (PeriodType/years))
   ([^Integer n]
-     (Years/years n)))
+     (Period/ofYears n)))
 
 (defn months
   "Given a number, returns a Period representing that many months.
