@@ -1,11 +1,13 @@
-# `clj-time` <a href="http://travis-ci.org/#!/seancorfield/clj-time/builds"><img src="https://secure.travis-ci.org/seancorfield/clj-time.png" /></a> [![Dependency Status](https://www.versioneye.com/clojure/clj-time:clj-time/0.11.0/badge.png)](https://www.versioneye.com/clojure/clj-time:clj-time/0.11.0)
+## This is still a work in progress
+
+# `clj-datetime` 
 
 
-A date and time library for Clojure, wrapping the [Joda Time](http://www.joda.org/joda-time/) library.
+A date and time library for Clojure, wrapping the [Java 8 Time](https://docs.oracle.com/javase/8/docs/api/java/time/package-frame.html) library.
 
 ## Artifacts
 
-`clj-time` artifacts are [released to Clojars](https://clojars.org/clj-time/clj-time).
+`clj-datetime` artifacts are [released to Clojars](https://clojars.org/clj-time/clj-time).
 
 If you are using Maven, add the following repository definition to your `pom.xml`:
 
