@@ -8,23 +8,37 @@
      => (from-long 893462400000)
      #<DateTime 1998-04-25T00:00:00.000Z>"
   (:refer-clojure :exclude [extend second])
-  (:require [clj-time.core :refer :all]
-            [clj-time.format :as time-fmt])
+  (:require [clj-datetime.core :refer :all]
+            [clj-datetime.format :as time-fmt])
   (:import [java.sql Timestamp]
            [java.util Date]
            [java.time Instant ZoneId LocalDateTime LocalDate ZonedDateTime ZoneId]
+           [java.time.temporal ChronoField]
            [org.joda.time DateTime DateTimeZone DateMidnight YearMonth
                           LocalDate LocalDateTime]))
 
 (defprotocol ICoerce
-  (^org.joda.time.DateTime
-    to-date-time [obj] "Convert `obj` to a Joda DateTime instance."))
+  (^java.time.ZonedDateTime
+    to-date-time [obj] "Convert `obj` to a  ZonedDateTime instance."))
+
+(defprotocol IMillis
+  (get-millis [this] "Get milliseconds from some date time type"))
+
+(extend-protocol IMillis
+  nil
+  (get-millis [_] nil)
+
+  ZonedDateTime
+  (get-millis [this] (.getLong this ChronoField/MILLI_OF_SECOND))
+
+  LocalDateTime
+  (get-millis [this] (.getLong this ChronoField/MILLI_OF_SECOND)))
 
 (defn from-long
-  "Returns a DateTime instance in the UTC time zone corresponding to the given
+  "Returns a ZonedDateTime instance in the UTC time zone corresponding to the given
    number of milliseconds after the Unix epoch."
   [^Long millis]
-  (DateTime. millis ^DateTimeZone utc))
+  (.atZone (Instant/ofEpochMilli millis) ^ZoneId utc))
 
 (defn from-string
   "return DateTime instance from string using
@@ -95,13 +109,13 @@
   "Convert `obj` to a Java SQL Timestamp instance."
   [obj]
   (if-let [dt (to-date-time obj)]
-    (Timestamp. (.getMillis dt))))
+    (Timestamp. (get-millis dt))))
 
 (defn to-local-date
-  "Convert `obj` to a org.joda.time.LocalDate instance"
+  "Convert `obj` to a java.time.LocalDate instance"
   [obj]
   (if-let [dt (to-date-time obj)]
-    (LocalDate. (.getMillis (from-time-zone dt (default-time-zone))))))
+    (LocalDate. (get-millis (from-time-zone dt (default-time-zone))))))
 
 (defn to-local-date-time
   "Convert `obj` to a org.joda.time.LocalDateTime instance"

@@ -26,9 +26,11 @@
    etc with the functions with-zone, with-locale, with-chronology,
    with-default-year and with-pivot-year."
   (:refer-clojure :exclude [extend second])
-  (:require [clj-time.core :refer :all]
+  (:require [clj-datetime.core :refer :all]
             [clojure.set :refer [difference]])
   (:import [java.util Locale]
+           [java.time ZonedDateTime ZoneId Period Duration]
+           [java.time.format DateTimeFormatter]
            [org.joda.time Chronology DateTime DateTimeZone Interval
                           LocalDateTime Period PeriodType LocalDate LocalTime]
            [org.joda.time.format DateTimeFormat DateTimeFormatter
@@ -42,11 +44,11 @@
   "Returns a custom formatter for the given date-time pattern or keyword."
   ([fmts]
      (formatter fmts utc))
-  ([fmts ^DateTimeZone dtz]
+  ([fmts ^ZoneId dtz]
    (cond (keyword? fmts) (.withZone ^DateTimeFormatter (get formatters fmts) dtz)
          (string?  fmts) (.withZone (DateTimeFormat/forPattern fmts) dtz)
          :else           (.withZone ^DateTimeFormatter fmts dtz)))
-  ([^DateTimeZone dtz fmts & more]
+  ([^ZoneId dtz fmts & more]
     (let [printer (.getPrinter ^DateTimeFormatter (formatter fmts dtz))
           parsers (map #(.getParser ^DateTimeFormatter (formatter % dtz)) (cons fmts more))]
       (-> (DateTimeFormatterBuilder.)
