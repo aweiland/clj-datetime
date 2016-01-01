@@ -229,7 +229,7 @@
   (minus- [this ^TemporalAmount period] (.minus this period))
   )
 
-(def ^{:doc "DateTimeZone for UTC."}
+(def ^{:doc "ZoneId for UTC."}
       utc
   (ZoneId/of "Z"))
 
@@ -254,7 +254,7 @@
 (defn epoch
   "Returns a DateTime for the begining of the Unix epoch in the UTC time zone."
   []
-  (ZonedDateTime. (long 0) ^DateTimeZone utc))
+  (ZonedDateTime/ofInstant Instant/EPOCH utc)
 
 (defn date-midnight
   "Constructs and returns a new DateMidnight in UTC.

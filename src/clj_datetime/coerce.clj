@@ -1,12 +1,12 @@
 (ns clj-datetime.coerce
-  "Utilites to coerce Joda DateTime instances to and from various other types.
-   For example, to convert a Joda DateTime to and from a Java long:
+  "Utilites to coerce ZonedDateTime instances to and from various other types.
+   For example, to convert a ZonedDateTime to and from a Java long:
 
      => (to-long (date-time 1998 4 25))
      893462400000
 
      => (from-long 893462400000)
-     #<DateTime 1998-04-25T00:00:00.000Z>"
+     #<ZonedDateTime 1998-04-25T00:00:00.000Z>"
   (:refer-clojure :exclude [extend second])
   (:require [clj-datetime.core :refer :all]
             [clj-datetime.format :as time-fmt])
@@ -34,6 +34,7 @@
   LocalDateTime
   (get-millis [this] (.getLong this ChronoField/MILLI_OF_SECOND)))
 
+
 (defn from-long
   "Returns a ZonedDateTime instance in the UTC time zone corresponding to the given
    number of milliseconds after the Unix epoch."
@@ -42,27 +43,27 @@
 
 (defn from-string
   "return DateTime instance from string using
-   formatters in clj-time.format, returning first
+   formatters in clj-datetime.format, returning first
    which parses"
   [^String s]
   (time-fmt/parse s))
 
 (defn from-date
-  "Returns a DateTime instance in the UTC time zone corresponding to the given
+  "Returns a ZonedDateTime instance in the UTC time zone corresponding to the given
    Java Date object."
   [^Date date]
   (when date
     (from-long (.getTime date))))
 
 (defn from-sql-date
-  "Returns a DateTime instance in the UTC time zone corresponding to the given
+  "Returns a ZonedDateTime instance in the UTC time zone corresponding to the given
    java.sql.Date object."
   [^java.sql.Date sql-date]
   (when sql-date
     (from-long (.getTime sql-date))))
 
 (defn from-sql-time
-  "Returns a DateTime instance in the UTC time zone corresponding to the given
+  "Returns a ZonedDateTime instance in the UTC time zone corresponding to the given
    java.sql.Timestamp object."
   [^java.sql.Timestamp sql-time]
   (when sql-time
@@ -72,7 +73,7 @@
   "Convert `obj` to the number of milliseconds after the Unix epoch."
   [obj]
   (if-let [dt (to-date-time obj)]
-    (.getMillis dt)))
+    (get-millis dt)))
 
 (defn to-epoch
   "Convert `obj` to Unix epoch."
@@ -84,25 +85,25 @@
   "Convert `obj` to a Java Date instance."
   [obj]
   (if-let [dt (to-date-time obj)]
-    (Date. (.getMillis dt))))
+    (Date. (get-millis dt))))
 
 (defn to-sql-date
   "Convert `obj` to a java.sql.Date instance."
   [obj]
   (if-let [dt (to-date-time obj)]
-    (java.sql.Date. (.getMillis dt))))
+    (java.sql.Date. (get-millis dt))))
 
 (defn to-sql-time
   "Convert `obj` to a java.sql.Timestamp instance."
   [obj]
   (if-let [dt (to-date-time obj)]
-    (java.sql.Timestamp. (.getMillis dt))))
+    (java.sql.Timestamp. (get-millis dt))))
 
 (defn to-string
   "Returns a string representation of obj in UTC time-zone
   using (ISODateTimeFormat/dateTime) date-time representation."
   [obj]
-  (if-let [^DateTime dt (to-date-time obj)]
+  (if-let [^ZonedDateTime dt (to-date-time obj)]
     (time-fmt/unparse (:date-time time-fmt/formatters) dt)))
 
 (defn to-timestamp
@@ -118,13 +119,13 @@
     (LocalDate. (get-millis (from-time-zone dt (default-time-zone))))))
 
 (defn to-local-date-time
-  "Convert `obj` to a org.joda.time.LocalDateTime instance"
+  "Convert `obj` to a java.time.LocalDateTime instance"
   [obj]
   (if-let [dt (to-date-time obj)]
-    (LocalDateTime. (.getMillis (from-time-zone dt (default-time-zone))))))
+    (LocalDateTime. (get-millis (from-time-zone dt (default-time-zone))))))
 
 (defn in-time-zone
-  "Convert `obj` into `tz`, return org.joda.time.LocalDate instance."
+  "Convert `obj` into `tz`, return java.time.LocalDate instance."
   [obj tz]
   (if-let [dt (to-date-time obj)]
     (-> dt
@@ -151,10 +152,6 @@
   DateTime
   (to-date-time [date-time]
     date-time)
-
-  DateMidnight
-  (to-date-time [date-midnight]
-    (.toDateTime date-midnight))
 
   YearMonth
   (to-date-time [year-month]
