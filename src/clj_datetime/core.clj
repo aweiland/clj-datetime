@@ -90,18 +90,10 @@
    coerce date-times to or from other types, see clj-time.coerce."
   (:refer-clojure :exclude [extend second])
   (:import [java.time Instant ZoneId LocalDateTime LocalTime LocalDate
-                      ZonedDateTime ZoneId ZoneOffset ZoneRegion
-                      Month MonthDay Year
-                      Period Duration]
-            [java.time.temporal TemporalAmount]
-            [java.time.chrono ChronoZonedDateTime ChronoLocalDateTime]
-    ;[org.joda.time ReadablePartial ReadableDateTime ReadableInstant
-    ;                      ReadablePeriod DateTime DateMidnight YearMonth
-    ;                      LocalDate LocalTime DateTimeZone Period PeriodType
-    ;                      Interval Years Months Weeks Days Hours Minutes Seconds
-    ;                      LocalDateTime MutableDateTime DateTimeUtils]
-    ;
-    ;       [org.joda.time.base BaseDateTime]
+                      ZonedDateTime ZoneId ZoneOffset
+                      Period Duration YearMonth]
+           [java.time.temporal TemporalAmount ChronoUnit ChronoField]
+           [java.time.chrono ChronoZonedDateTime ChronoLocalDateTime ChronoLocalDate]
            ))
 
 (defn deprecated [message]
@@ -127,7 +119,7 @@
     "Returns a new date/time corresponding to the given date/time moved backwards by the given Period(s).")
   (first-day-of-the-month- [this] "Returns the first day of the month")
   (last-day-of-the-month- [this] "Returns the last day of the month")
-  (week-number-of-year [this] "Returs the number of weeks in the year"))
+  (week-number-of-year [this] "Returs the number of weeks in the year")) ; Might not be possible in java 8
 
 (defprotocol InTimeUnitProtocol
   "Interface for in-<time unit> functions"
@@ -143,24 +135,24 @@
 (extend-protocol DateTimeProtocol
   java.time.ZonedDateTime
   (year [this] (.getYear this))
-  (month [this] (.getMonthOfYear this))
+  (month [this] (.getMonthValue this))
   (day [this] (.getDayOfMonth this))
   (day-of-week [this] (.getDayOfWeek this))
-  (hour [this] (.getHourOfDay this))
-  (minute [this] (.getMinuteOfHour this))
+  (hour [this] (.getHour this))
+  (minute [this] (.getMinute this))
   (sec [this]
     {:deprecated "0.6.0"}
     (deprecated "sec is being deprecated in favor of second")
-    (.getSecondOfMinute this))
-  (second [this] (.getSecondOfMinute this))
-  (milli [this] (.getMillisOfSecond this))
+    (.getSecond this))
+  (second [this] (.getSecond this))
+  (milli [this] (* (.getNano this) 100000))
   (equal? [this ^ChronoZonedDateTime that] (.isEqual this that))
   (after? [this ^ChronoZonedDateTime that] (.isAfter this that))
   (before? [this ^ChronoZonedDateTime that] (.isBefore this that))
   (plus- [this ^TemporalAmount period] (.plus this period))
   (minus- [this ^TemporalAmount period] (.minus this period))
   (first-day-of-the-month- [this]
-    (.. ^ZonedDateTime this dayOfMonth withMinimumValue))
+    (.. ^ZonedDateTime this dayOfMonth withMinimumValue)) ; always 1 right? or is it a date time
   (last-day-of-the-month- [this]
      (.. ^ZonedDateTime this dayOfMonth withMaximumValue))
   (week-number-of-year [this]
@@ -168,22 +160,22 @@
 
   java.time.LocalDateTime
   (year [this] (.getYear this))
-  (month [this] (.getMonthOfYear this))
+  (month [this] (.getMonthValue this))
   (day [this] (.getDayOfMonth this))
   (day-of-week [this] (.getDayOfWeek this))
-  (hour [this] (.getHourOfDay this))
-  (minute [this] (.getMinuteOfHour this))
+  (hour [this] (.getHour this))
+  (minute [this] (.getMinute this))
   (sec [this]
     {:deprecated "0.6.0"}
     (deprecated "sec is being deprecated in favor of second")
-    (.getSecondOfMinute this))
-  (second [this] (.getSecondOfMinute this))
-  (milli [this] (.getMillisOfSecond this))
+    (.getSecond this))
+  (second [this] (.getSecond this))
+  (milli [this] (* (.getNano this) 100000))
   (equal? [this ^ChronoLocalDateTime that] (.isEqual this that))
   (after? [this ^ChronoLocalDateTime that] (.isAfter this that))
   (before? [this ^ChronoLocalDateTime that] (.isBefore this that))
-  (plus- [this ^ChronoLocalDateTime period] (.plus this period))
-  (minus- [this ^ChronoLocalDateTime period] (.minus this period))
+  (plus- [this ^TemporalAmount period] (.plus this period))
+  (minus- [this ^TemporalAmount period] (.minus this period))
   (first-day-of-the-month- [this]
     (.. ^LocalDateTime this dayOfMonth withMinimumValue))
   (last-day-of-the-month- [this]
@@ -202,7 +194,7 @@
 
   java.time.LocalDate
   (year [this] (.getYear this))
-  (month [this] (.getMonthOfYear this))
+  (month [this] (.getMonthValue this))
   (day [this] (.getDayOfMonth this))
   (day-of-week [this] (.getDayOfWeek this))
   (equal? [this ^ChronoLocalDate that] (.isEqual this that))
@@ -218,10 +210,10 @@
     (.getWeekOfWeekyear this))
 
   java.time.LocalTime
-  (hour [this] (.getHourOfDay this))
-  (minute [this] (.getMinuteOfHour this))
-  (second [this] (.getSecondOfMinute this))
-  (milli [this] (.getMillisOfSecond this))
+  (hour [this] (.getHour this))
+  (minute [this] (.getMinute this))
+  (second [this] (.getSecond this))
+  (milli [this] (* (.getNano this)) 100000)
   (equal? [this ^LocalTime that] (.isEqual this that))
   (after? [this ^LocalTime that] (.isAfter this that))
   (before? [this ^LocalTime that] (.isBefore this that))
@@ -229,6 +221,7 @@
   (minus- [this ^TemporalAmount period] (.minus this period))
   )
 
+; TODO Make TZ an atom that can be configured by the user for a default TZ for all operations
 (def ^{:doc "ZoneId for UTC."}
       utc
   (ZoneId/of "Z"))
@@ -242,22 +235,22 @@
   "Returns a LocalTime for the current instant without date or time zone
   using ISOChronology in the current time zone."
   []
-  (LocalTime. ))
+  (LocalTime/now))
 
 (defn today-at-midnight
   "Returns a DateMidnight for today at midnight in the UTC time zone."
   ([]
    (today-at-midnight utc))
   ([^ZoneId tz]
-   (.atStartOfDay (LocalDate.) tz)))
+   (.atStartOfDay (LocalDate/now) tz)))
 
 (defn epoch
   "Returns a DateTime for the begining of the Unix epoch in the UTC time zone."
   []
-  (ZonedDateTime/ofInstant Instant/EPOCH utc)
+  (ZonedDateTime/ofInstant Instant/EPOCH utc))
 
 (defn date-midnight
-  "Constructs and returns a new DateMidnight in UTC.
+  "Constructs and returns a new LocalDate in UTC.
    Specify the year, month of year, day of month. Note that month and day are
    1-indexed. Any number of least-significant components can be ommited, in which case
    they will default to 1."
@@ -298,8 +291,8 @@
   ([year month day hour minute second]
    (date-time year month day hour minute second 0))
   ([^Integer year ^Integer month ^Integer day ^Integer hour
-    ^Integer minute ^Integer second ^Integer millis]
-   (ZonedDateTime/of year month day hour minute second millis ^ZoneId utc)))
+    ^Integer minute ^Integer second ^Integer nano]
+   (ZonedDateTime/of year month day hour minute second nano ^ZoneId utc)))
 
 (defn ^java.time.LocalDateTime local-date-time
   "Constructs and returns a new LocalDateTime.
@@ -322,7 +315,7 @@
    (local-date-time year month day hour minute second 0))
   ([^Integer year ^Integer month ^Integer day ^Integer hour
     ^Integer minute ^Integer second ^Integer millis]
-   (LocalDateTime. year month day hour minute second millis)))
+   (LocalDateTime/of year month day hour minute second millis)))
 
 (defn ^java.time.YearMonth year-month
   "Constructs and returns a new YearMonth.
@@ -384,15 +377,15 @@
   []
   (ZoneId/systemDefault))
 
-(defn ^java.time.DateTime
+(defn ^java.time.ZonedDateTime
   to-time-zone
-  "Returns a new DateTime corresponding to the same absolute instant in time as
+  "Returns a new ZonedDateTime corresponding to the same absolute instant in time as
    the given DateTime, but with calendar fields corresponding to the given
    ZoneId."
   [^ZonedDateTime dt ^ZoneId tz]
   (.withZoneSameInstant dt tz))
 
-(defn ^java.time.DateTime
+(defn ^java.time.ZonedDateTime
   from-time-zone
   "Returns a new DateTime corresponding to the same point in calendar time as
    the given DateTime, but for a correspondingly different absolute instant in
@@ -401,129 +394,83 @@
   (.withZoneSameLocal dt tz))
 
 (defn years
-  "Given a number, returns a Period representing that many years.
-   Without an argument, returns a PeriodType representing only years."
-  ([]
-     (PeriodType/years))
-  ([^Integer n]
-     (Period/ofYears n)))
+  "Given a number, returns a Duration representing that many years."
+  [^Integer n]
+     (Period/ofYears n))
 
 (defn months
-  "Given a number, returns a Period representing that many months.
-   Without an argument, returns a PeriodType representing only months."
-  ([]
-     (PeriodType/months))
-  ([^Integer n]
-     (Months/months n)))
+  "Given a number, returns a Duration representing that many months."
+  [^Integer n]
+     (Period/ofMonths n))
 
 (defn weeks
-  "Given a number, returns a Period representing that many weeks.
-   Without an argument, returns a PeriodType representing only weeks."
-  ([]
-     (PeriodType/weeks))
-  ([^Integer n]
-     (Weeks/weeks n)))
+  "Given a number, returns a Duration representing that many weeks."
+  [^Integer n]
+     (Period/ofWeeks n))
 
 (defn days
-  "Given a number, returns a Period representing that many days.
-   Without an argument, returns a PeriodType representing only days."
-  ([]
-     (PeriodType/days))
-  ([^Integer n]
-     (Days/days n)))
+  "Given a number, returns a Duration representing that many days."
+  [^Integer n]
+     (Duration/ofDays n))
 
 (defn hours
-  "Given a number, returns a Period representing that many hours.
-   Without an argument, returns a PeriodType representing only hours."
-  ([]
-     (PeriodType/hours))
-  ([^Integer n]
-     (Hours/hours n)))
+  "Given a number, returns a Duration representing that many hours."
+  [^Integer n]
+     (Duration/ofHours n))
 
 (defn minutes
-  "Given a number, returns a Period representing that many minutes.
-   Without an argument, returns a PeriodType representing only minutes."
-  ([]
-     (PeriodType/minutes))
-  ([^Integer n]
-     (Minutes/minutes n)))
+  "Given a number, returns a Duration representing that many minutes."
+  [^Integer n]
+     (Duration/ofMinutes n))
 
 (defn seconds
-  "Given a number, returns a Period representing that many seconds.
+  "Given a number, returns a Duration representing that many seconds.
    Without an argument, returns a PeriodType representing only seconds."
   ([]
-     (PeriodType/seconds))
+     (ChronoUnit/SECONDS))
   ([^Integer n]
-     (Seconds/seconds n)))
+     (Duration/ofSeconds n)))
 
+  ; Inverval does not exist nor has an equivalent in Java 8
 (extend-protocol InTimeUnitProtocol
-  org.joda.time.Interval 
+  java.time.Duration
   (in-millis [this] (.toDurationMillis this))
-  (in-seconds [this] (.getSeconds (.toPeriod this (seconds))))
-  (in-minutes [this] (.getMinutes (.toPeriod this (minutes))))
-  (in-hours [this] (.getHours (.toPeriod this (hours))))
-  (in-days [this] (.getDays (.toPeriod this (days))))
-  (in-weeks [this] (.getWeeks (.toPeriod this (weeks))))
-  (in-months [this] (.getMonths (.toPeriod this (months))))
-  (in-years [this] (.getYears (.toPeriod this (years))))
-  org.joda.time.ReadablePeriod
-  (in-millis [this] (-> this .toPeriod .toStandardDuration .getMillis))
-  (in-seconds [this] (-> this .toPeriod .toStandardSeconds .getSeconds))
-  (in-minutes [this] (-> this .toPeriod .toStandardMinutes .getMinutes))
-  (in-hours [this] (-> this .toPeriod .toStandardHours .getHours))
-  (in-days [this] (-> this .toPeriod .toStandardDays .getDays))
-  (in-weeks [this] (-> this .toPeriod .toStandardWeeks .getWeeks))
-  (in-months [this] 
-    (condp instance? this
-      org.joda.time.Months (.getMonths ^org.joda.time.Months this)
-      org.joda.time.Years (* 12 (.getYears ^org.joda.time.Years this))
-      (throw
-        (UnsupportedOperationException.
-          "Cannot convert to Months because months vary in length."))))
-  (in-years [this]
-    (condp instance? this
-      org.joda.time.Months (int (/ (.getMonths ^org.joda.time.Months this) 12))
-      org.joda.time.Years (.getYears ^org.joda.time.Years this)
-      (throw
-        (UnsupportedOperationException.
-          "Cannot convert to Years because years vary in length.")))))
+  (in-seconds [this] (.getSeconds this))
+  (in-minutes [this] (.getMinutes this))
+  (in-hours [this] (.getHours this))
+  (in-days [this] (.getDays this))
+  (in-weeks [this] (.getWeeks this))
+  (in-months [this] (.getMonths this))
+  (in-years [this] (.getYears this))
 
-(defn in-msecs
-  "DEPRECATED: Returns the number of milliseconds in the given Interval."
-  {:deprecated "0.6.0"}
-  [^Interval in]
-  (deprecated "in-msecs has been deprecated in favor of in-millis")
-  (in-millis in))
- 
-(defn in-secs
-  "DEPRECATED: Returns the number of standard seconds in the given Interval."
-  {:deprecated "0.6.0"}
-  [^Interval in]
-  (deprecated "in-secs has been deprecated in favor of in-seconds")
-  (in-seconds in))
- 
-(defn secs
-  "DEPRECATED"
-  {:deprecated "0.6.0"}
-  ([]
-     (deprecated "secs has been deprecated in favor of seconds")
-     (seconds))
-  ([^Integer n]
-     (deprecated "secs has been deprecated in favor of seconds")
-     (seconds n)))
+  java.time.Period
+  (in-days [this] (.getDays this))
+  (in-weeks [this] (.getWeeks this))
+  (in-months [this] (.getMonth this))
+  (in-years [this] (.getYears this)))
+
+
 
 (defn millis
-  "Given a number, returns a Period representing that many milliseconds.
-   Without an argument, returns a PeriodType representing only milliseconds."
+  "Given a number, returns a Duration representing that many milliseconds.
+   Without an argument, returns a ChronoUnit representing only milliseconds."
   ([]
-     (PeriodType/millis))
+     (ChronoUnit/MILLIS))
   ([^Integer n]
-     (Period/millis n)))
+     (Duration/ofMillis n)))
+
+(defn nanos
+  "Given a number, returns a Duration representing that many nanoseconds.
+   Without an argument, returns a ChronoUnit representing only nanoseconds."
+  ([]
+    (ChronoUnit/NANOS))
+  ([^Integer n]
+    (Duration/ofNanos n)))
 
 (defn plus
   "Returns a new date/time corresponding to the given date/time moved forwards by
    the given Period(s)."
-  ([dt ^ReadablePeriod p]
+  ([dt ^TemporalAmount p]
      (plus- dt p))
   ([dt p & ps]
      (reduce plus- (plus- dt p) ps)))
@@ -531,7 +478,7 @@
 (defn minus
   "Returns a new date/time object corresponding to the given date/time moved backwards by
    the given Period(s)."
-  ([dt ^ReadablePeriod p]
+  ([dt ^TemporalAmount p]
    (minus- dt p))
   ([dt p & ps]
      (reduce minus- (minus- dt p) ps)))
@@ -539,11 +486,11 @@
 (defn ago
   "Returns a DateTime a supplied period before the present.
   e.g. (-> 5 years ago)"
-  [^Period period]
+  [^TemporalAmount period]
   (minus (now) period))
 
 (defn yesterday
-  "Returns a DateTime for yesterday relative to now"
+  "Returns a ZonedDateTime for yesterday relative to now"
   []
   (-> 1 days ago))
 
@@ -553,9 +500,14 @@
   [^Period period]
   (plus (now) period))
 
+(defn tomorrow
+  "Returns a ZonedDateTime for tomorrow relative to now"
+  []
+  (-> 1 days from-now))
+
 (defn earliest
   "Returns the earliest of the supplied DateTimes"
-  ([^ReadableInstant dt1 ^ReadableInstant dt2]
+  ([^Comparable dt1 ^Comparable dt2]
      (if (pos? (compare dt1 dt2)) dt2 dt1))
   ([dts]
      (reduce (fn [dt1 dt2]
@@ -563,128 +515,83 @@
 
 (defn latest
   "Returns the latest of the supplied DateTimes"
-  ([^ReadableInstant dt1 ^ReadableInstant dt2]
+  ([^Comparable dt1 ^Comparable dt2]
      (if (neg? (compare dt1 dt2)) dt2 dt1))
   ([dts]
      (reduce (fn [dt1 dt2]
                (if (neg? (compare dt1 dt2)) dt2 dt1)) dts)))
 
-(defn interval
-  "Returns an interval representing the span between the two given ReadableDateTimes.
-   Note that intervals are closed on the left and open on the right."
-  [^ReadableDateTime dt-a ^ReadableDateTime dt-b]
-  (Interval. dt-a dt-b))
+;(defn interval
+;  "Returns an interval representing the span between the two given ReadableDateTimes.
+;   Note that intervals are closed on the left and open on the right."
+;  [^ReadableDateTime dt-a ^ReadableDateTime dt-b]
+;  (Interval. dt-a dt-b))
 
-(defn start
-  "Returns the start DateTime of an Interval."
-  [^Interval in]
-  (.getStart in))
+;(defn start
+;  "Returns the start DateTime of an Interval."
+;  [^Interval in]
+;  (.getStart in))
+;
+;(defn end
+;  "Returns the end DateTime of an Interval."
+;  [^Interval in]
+;  (.getEnd in))
 
-(defn end
-  "Returns the end DateTime of an Interval."
-  [^Interval in]
-  (.getEnd in))
-
-(defn extend
-  "Returns an Interval with an end ReadableDateTime the specified Period after the end
-   of the given Interval"
-  [^Interval in & by]
-  (.withEnd in (apply plus (end in) by)))
+;(defn extend
+;  "Returns an Interval with an end ReadableDateTime the specified Period after the end
+;   of the given Interval"
+;  [^Interval in & by]
+;  (.withEnd in (apply plus (end in) by)))
 
 
-(defn within?
-  "With 2 arguments: Returns true if the given Interval contains the given
-   ReadableDateTime. Note that if the ReadableDateTime is exactly equal to the
-   end of the interval, this function returns false.
-   With 3 arguments: Returns true if the start ReadablePartial is
-   equal to or before and the end ReadablePartial is equal to or after the test
-   ReadablePartial."
-  ([^Interval i ^ReadableDateTime dt]
-     (.contains i dt))
-  ([^ReadablePartial start ^ReadablePartial end ^ReadablePartial test]
-     (or (equal? start test)
-         (equal? end test)
-         (and (before? start test) (after? end test)))))
+;(defn within?
+;  "With 2 arguments: Returns true if the given Interval contains the given
+;   ReadableDateTime. Note that if the ReadableDateTime is exactly equal to the
+;   end of the interval, this function returns false.
+;   With 3 arguments: Returns true if the start ReadablePartial is
+;   equal to or before and the end ReadablePartial is equal to or after the test
+;   ReadablePartial."
+;  ([^Interval i ^ReadableDateTime dt]
+;     (.contains i dt))
+;  ([^ReadablePartial start ^ReadablePartial end ^ReadablePartial test]
+;     (or (equal? start test)
+;         (equal? end test)
+;         (and (before? start test) (after? end test)))))
+;
+;(defn overlaps?
+;  "With 2 arguments: Returns true of the two given Intervals overlap.
+;   Note that intervals that satisfy abuts? do not satisfy overlaps?
+;   With 4 arguments: Returns true if the range specified by start-a and end-a
+;   overlaps with the range specified by start-b and end-b."
+;  ([^Interval i-a ^Interval i-b]
+;     (.overlaps i-a i-b))
+;  ([^ReadablePartial start-a ^ReadablePartial end-a
+;    ^ReadablePartial start-b ^ReadablePartial end-b]
+;     (or (and (before? start-b end-a) (after? end-b start-a))
+;         (and (after? end-b start-a) (before? start-b end-a))
+;         (or (equal? start-a end-b) (equal? start-b end-a)))))
+;
+;(defn overlap
+;  "Returns an Interval representing the overlap of the specified Intervals.
+;   Returns nil if the Intervals do not overlap.
+;   The first argument must not be nil.
+;   If the second argument is nil then the overlap of the first argument
+;   and a zero duration interval with both start and end times equal to the
+;   current time is returned."
+;  [^Interval i-a ^Interval i-b]
+;     ;; joda-time AbstractInterval.overlaps:
+;     ;;    null argument means a zero length interval 'now'.
+;     (cond (nil? i-b) (let [n (now)] (overlap i-a (interval n n)))
+;           (.overlaps i-a i-b) (interval (latest (start i-a) (start i-b))
+;                                         (earliest (end i-a) (end i-b)))
+;           :else nil))
+;
+;(defn abuts?
+;  "Returns true if Interval i-a abuts i-b, i.e. then end of i-a is exactly the
+;   beginning of i-b."
+;  [^Interval i-a ^Interval i-b]
+;  (.abuts i-a i-b))
 
-(defn overlaps?
-  "With 2 arguments: Returns true of the two given Intervals overlap.
-   Note that intervals that satisfy abuts? do not satisfy overlaps?
-   With 4 arguments: Returns true if the range specified by start-a and end-a
-   overlaps with the range specified by start-b and end-b."
-  ([^Interval i-a ^Interval i-b]
-     (.overlaps i-a i-b))
-  ([^ReadablePartial start-a ^ReadablePartial end-a
-    ^ReadablePartial start-b ^ReadablePartial end-b]
-     (or (and (before? start-b end-a) (after? end-b start-a))
-         (and (after? end-b start-a) (before? start-b end-a))
-         (or (equal? start-a end-b) (equal? start-b end-a)))))
-
-(defn overlap
-  "Returns an Interval representing the overlap of the specified Intervals.
-   Returns nil if the Intervals do not overlap.
-   The first argument must not be nil.
-   If the second argument is nil then the overlap of the first argument
-   and a zero duration interval with both start and end times equal to the
-   current time is returned."
-  [^Interval i-a ^Interval i-b]
-     ;; joda-time AbstractInterval.overlaps:
-     ;;    null argument means a zero length interval 'now'.
-     (cond (nil? i-b) (let [n (now)] (overlap i-a (interval n n)))
-           (.overlaps i-a i-b) (interval (latest (start i-a) (start i-b))
-                                         (earliest (end i-a) (end i-b)))
-           :else nil))
-
-(defn abuts?
-  "Returns true if Interval i-a abuts i-b, i.e. then end of i-a is exactly the
-   beginning of i-b."
-  [^Interval i-a ^Interval i-b]
-  (.abuts i-a i-b))
-
-(defn years?
-  "Returns true if the given value is an instance of Years"
-  [val]
-  (instance? Years val))
-
-(defn months?
-  "Returns true if the given value is an instance of Months"
-  [val]
-  (instance? Months val))
-
-(defn weeks?
-  "Returns true if the given value is an instance of Weeks"
-  [val]
-  (instance? Weeks val))
-
-(defn days?
-  "Returns true if the given value is an instance of Days"
-  [val]
-  (instance? Days val))
-
-(defn hours?
-  "Returns true if the given value is an instance of Hours"
-  [val]
-  (instance? Hours val))
-
-(defn minutes?
-  "Returns true if the given value is an instance of Minutes"
-  [val]
-  (instance? Minutes val))
-
-(defn seconds?
-  "Returns true if the given value is an instance of Seconds"
-  [val]
-  (instance? Seconds val))
-
-(defn secs?
-  "DEPRECATED"
-  {:deprecated "0.6.0"}
-  [val]
-  (deprecated "secs? has been deprecated in favor of seconds?")
-  (seconds? val))
-
-(defn mins-ago
-  [d]
-  (in-minutes (interval d (now))))
 
 (defn first-day-of-the-month
   ([^long year ^long month]
@@ -699,44 +606,48 @@
      (last-day-of-the-month- dt)))
 
 (defn number-of-days-in-the-month
-  (^long [^DateTime dt]
+  (^long [^ZonedDateTime dt]
          (day (last-day-of-the-month- dt)))
   (^long [^long year ^long month]
          (day (last-day-of-the-month- (date-time year month)))))
 
-(defn ^ZonedDateTime today-at
-  ([^long hours ^long minutes ^long seconds ^long millis]
-     (let [^MutableDateTime mdt (.toMutableDateTime ^DateTime (now))]
-       (.toDateTime (doto mdt
-                      (.setHourOfDay      hours)
-                      (.setMinuteOfHour   minutes)
-                      (.setSecondOfMinute seconds)
-                      (.setMillisOfSecond millis)))))
-  ([^long hours ^long minutes ^long seconds]
-     (today-at hours minutes seconds 0))
-  ([^long hours ^long minutes]
-     (today-at hours minutes 0)))
 
-(defn do-at* [^BaseDateTime base-date-time body-fn]
-  (DateTimeUtils/setCurrentMillisFixed (.getMillis base-date-time))
-  (try
-    (body-fn)
-    (finally
-      (DateTimeUtils/setCurrentMillisSystem))))
-
+(defn do-at* [^ZonedDateTime base-date-time body-fn]
+    (with-redefs [utc (proxy [java.time.Clock] []
+                        (getZone [] (ZoneId/of "Z"))
+                        (instant [] (.toInstant base-date-time))
+                        (withZone [zone-id] utc))]
+      (body-fn)))
 (defmacro do-at
   "Like clojure.core/do except evalautes the expression at the given date-time"
-  [^BaseDateTime base-date-time & body]
+  [^ZonedDateTime base-date-time & body]
   `(do-at* ~base-date-time
     (fn [] ~@body)))
 
-(defn ^DateTime floor
+; This is a very clever implementation
+(defn ^ZonedDateTime floor
   "Floors the given date-time dt to the given time unit dt-fn,
   e.g. (floor (now) hour) returns (now) for all units
   up to and including the hour"
-  ([^DateTime dt dt-fn]
+  ([^ZonedDateTime dt dt-fn]
 	 (let [dt-fns [year month day hour minute second milli]]
 	 	(apply date-time
 	 		(map apply
 				(concat (take-while (partial not= dt-fn) dt-fns) [dt-fn])
 				(repeat [dt]))))))
+
+
+(defn ^ZonedDateTime today-at
+  ([^long hours ^long minutes ^long seconds ^long nanos]
+   (let [dt (floor (now) day)]
+     (-> dt
+         (.plusHours hours)
+         (.plusMinutes minutes)
+         (.plusSeconds seconds)
+         (.plusNanos nanos))))
+  ([^long hours ^long minutes ^long seconds]
+   (today-at hours minutes seconds 0))
+  ([^long hours ^long minutes]
+   (today-at hours minutes 0))
+  ([^long hours]
+   (today-at hours 0)))

@@ -3,7 +3,7 @@
   (:require [clojure.test :refer :all]
             [clj-datetime [core :refer :all] [coerce :refer :all]])
   (:import java.util.Date java.sql.Timestamp
-           [org.joda.time LocalDate LocalDateTime]))
+           [java.time LocalDate LocalDateTime]))
 
 (deftest test-from-date
   (let [dt (from-long 893462400000)
