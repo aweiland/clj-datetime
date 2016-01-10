@@ -1,8 +1,8 @@
 (ns clj-datetime.core
   "The core namespace for date-time operations in the clj-datetime library.
 
-   Create a DateTime instance with date-time (or a LocalDateTime instance with local-date-time),
-   specifying the year, month, day, hour, minute, second, and millisecond:
+   Create a ZonedDateTime instance with date-time (or a LocalDateTime instance with local-date-time),
+   specifying the year, month, day, hour, minute, second, and nanosecond:
 
      => (date-time 1986 10 14 4 3 27 456)
      #<ZonedDateTime 1986-10-14T04:03:27.456Z>
@@ -92,7 +92,7 @@
   (:import [java.time Instant ZoneId LocalDateTime LocalTime LocalDate
                       ZonedDateTime ZoneId ZoneOffset
                       Period Duration YearMonth]
-           [java.time.temporal TemporalAmount ChronoUnit ChronoField]
+           [java.time.temporal TemporalAmount ChronoUnit ChronoField TemporalAdjusters]
            [java.time.chrono ChronoZonedDateTime ChronoLocalDateTime ChronoLocalDate]
            ))
 
@@ -107,9 +107,9 @@
   (day-of-week [this]   "Return the day of week component of the given date/time. Monday is 1 and Sunday is 7")
   (hour [this]   "Return the hour of day component of the given date/time. A time of 12:01am will have an hour component of 0.")
   (minute [this]   "Return the minute of hour component of the given date/time.")
-  (sec [this]   "Return the second of minute component of the given date/time.")
   (second [this]   "Return the second of minute component of the given date/time.")
   (milli [this]   "Return the millisecond of second component of the given date/time.")
+  (nano [this]   "Return the nanosecond of second component of the given date/time.")
   (equal? [this that] "Returns true if ReadableDateTime 'this' is strictly equal to date/time 'that'.")
   (after? [this that] "Returns true if ReadableDateTime 'this' is strictly after date/time 'that'.")
   (before? [this that] "Returns true if ReadableDateTime 'this' is strictly before date/time 'that'.")
@@ -123,6 +123,7 @@
 
 (defprotocol InTimeUnitProtocol
   "Interface for in-<time unit> functions"
+  (in-nanos [this] "Return the time in nanoseconds.")
   (in-millis [this] "Return the time in milliseconds.")
   (in-seconds [this] "Return the time in seconds.")
   (in-minutes [this] "Return the time in minutes.")
@@ -137,7 +138,7 @@
   (year [this] (.getYear this))
   (month [this] (.getMonthValue this))
   (day [this] (.getDayOfMonth this))
-  (day-of-week [this] (.getDayOfWeek this))
+  (day-of-week [this] (.. this (getDayOfWeek) (getValue)))
   (hour [this] (.getHour this))
   (minute [this] (.getMinute this))
   (sec [this]
@@ -145,24 +146,25 @@
     (deprecated "sec is being deprecated in favor of second")
     (.getSecond this))
   (second [this] (.getSecond this))
-  (milli [this] (* (.getNano this) 100000))
+  (milli [this] (* (.getNano this) 1000000))
+  (nano [this] (.getNano this))
   (equal? [this ^ChronoZonedDateTime that] (.isEqual this that))
   (after? [this ^ChronoZonedDateTime that] (.isAfter this that))
   (before? [this ^ChronoZonedDateTime that] (.isBefore this that))
   (plus- [this ^TemporalAmount period] (.plus this period))
   (minus- [this ^TemporalAmount period] (.minus this period))
   (first-day-of-the-month- [this]
-    (.. ^ZonedDateTime this dayOfMonth withMinimumValue)) ; always 1 right? or is it a date time
+    (.with ^ZonedDateTime this (TemporalAdjusters/firstDayOfMonth))) ; always 1 right? or is it a date time
   (last-day-of-the-month- [this]
-     (.. ^ZonedDateTime this dayOfMonth withMaximumValue))
+     (.with ^ZonedDateTime this (TemporalAdjusters/lastDayOfMonth)))
   (week-number-of-year [this]
-    (.getWeekOfWeekyear this))
+    (.get this ChronoField/ALIGNED_WEEK_OF_YEAR))
 
   java.time.LocalDateTime
   (year [this] (.getYear this))
   (month [this] (.getMonthValue this))
   (day [this] (.getDayOfMonth this))
-  (day-of-week [this] (.getDayOfWeek this))
+  (day-of-week [this] (.. this (getDayOfWeek) (getValue)))
   (hour [this] (.getHour this))
   (minute [this] (.getMinute this))
   (sec [this]
@@ -170,18 +172,19 @@
     (deprecated "sec is being deprecated in favor of second")
     (.getSecond this))
   (second [this] (.getSecond this))
-  (milli [this] (* (.getNano this) 100000))
+  (milli [this] (* (.getNano this) 1000000))
+  (nano [this] (.getNano this))
   (equal? [this ^ChronoLocalDateTime that] (.isEqual this that))
   (after? [this ^ChronoLocalDateTime that] (.isAfter this that))
   (before? [this ^ChronoLocalDateTime that] (.isBefore this that))
   (plus- [this ^TemporalAmount period] (.plus this period))
   (minus- [this ^TemporalAmount period] (.minus this period))
   (first-day-of-the-month- [this]
-    (.. ^LocalDateTime this dayOfMonth withMinimumValue))
+    (.with ^LocalDateTime this (TemporalAdjusters/firstDayOfMonth)))
   (last-day-of-the-month- [this]
-     (.. ^LocalDateTime this dayOfMonth withMaximumValue))
+     (.with ^LocalDateTime this (TemporalAdjusters/lastDayOfMonth)))
   (week-number-of-year [this]
-    (.getWeekOfWeekyear this))
+    (.get this ChronoField/ALIGNED_WEEK_OF_YEAR))
 
   java.time.YearMonth
   (year [this] (.getYear this))
@@ -196,24 +199,24 @@
   (year [this] (.getYear this))
   (month [this] (.getMonthValue this))
   (day [this] (.getDayOfMonth this))
-  (day-of-week [this] (.getDayOfWeek this))
+  (day-of-week [this] (.. this (getDayOfWeek) (getValue)))
   (equal? [this ^ChronoLocalDate that] (.isEqual this that))
   (after? [this ^ChronoLocalDate that] (.isAfter this that))
   (before? [this ^ChronoLocalDate that] (.isBefore this that))
   (plus- [this ^TemporalAmount period] (.plus this period))
   (minus- [this ^TemporalAmount period] (.minus this period))
   (first-day-of-the-month- [this]
-    (.. ^LocalDate this dayOfMonth withMinimumValue))
+    (.with ^LocalDate this (TemporalAdjusters/firstDayOfMonth)))
   (last-day-of-the-month- [this]
-     (.. ^LocalDate this dayOfMonth withMaximumValue))
+     (.with ^LocalDate this (TemporalAdjusters/lastDayOfMonth)))
   (week-number-of-year [this]
-    (.getWeekOfWeekyear this))
+    (.get this ChronoField/ALIGNED_WEEK_OF_YEAR))
 
   java.time.LocalTime
   (hour [this] (.getHour this))
   (minute [this] (.getMinute this))
   (second [this] (.getSecond this))
-  (milli [this] (* (.getNano this)) 100000)
+  (milli [this] (* (.getNano this)) 1000000)
   (equal? [this ^LocalTime that] (.isEqual this that))
   (after? [this ^LocalTime that] (.isAfter this that))
   (before? [this ^LocalTime that] (.isBefore this that))
@@ -377,16 +380,14 @@
   []
   (ZoneId/systemDefault))
 
-(defn ^java.time.ZonedDateTime
-  to-time-zone
+(defn ^java.time.ZonedDateTime to-time-zone
   "Returns a new ZonedDateTime corresponding to the same absolute instant in time as
    the given DateTime, but with calendar fields corresponding to the given
    ZoneId."
   [^ZonedDateTime dt ^ZoneId tz]
   (.withZoneSameInstant dt tz))
 
-(defn ^java.time.ZonedDateTime
-  from-time-zone
+(defn ^java.time.ZonedDateTime from-time-zone
   "Returns a new DateTime corresponding to the same point in calendar time as
    the given DateTime, but for a correspondingly different absolute instant in
    time."
@@ -394,78 +395,111 @@
   (.withZoneSameLocal dt tz))
 
 (defn years
-  "Given a number, returns a Duration representing that many years."
-  [^Integer n]
-     (Period/ofYears n))
+  "Given a number, returns a Duration representing that many years.
+  Without an argument, returns a ChronoUnit representing only years."
+  ([]
+   (ChronoUnit/YEARS))
+  ([^Integer n]
+     (Period/ofYears n)))
 
 (defn months
-  "Given a number, returns a Duration representing that many months."
-  [^Integer n]
-     (Period/ofMonths n))
+  "Given a number, returns a Duration representing that many months.
+  Without an argument, returns a ChronoUnit representing only months."
+  ([]
+   (ChronoUnit/MONTHS))
+  ([^Integer n]
+     (Period/ofMonths n)))
 
 (defn weeks
-  "Given a number, returns a Duration representing that many weeks."
-  [^Integer n]
-     (Period/ofWeeks n))
+  "Given a number, returns a Duration representing that many weeks.
+  Without an argument, returns a ChronoUnit representing only weeks."
+  ([]
+   (ChronoUnit/WEEKS))
+  ([^Integer n]
+     (Duration/ofDays (* n 7))))
 
 (defn days
-  "Given a number, returns a Duration representing that many days."
-  [^Integer n]
-     (Duration/ofDays n))
+  "Given a number, returns a Duration representing that many days.
+  Without an argument, returns a ChronoUnit representing only days."
+  ([]
+   (ChronoUnit/DAYS))
+  ([^Integer n]
+     (Duration/ofDays n)))
 
 (defn hours
-  "Given a number, returns a Duration representing that many hours."
-  [^Integer n]
-     (Duration/ofHours n))
+  "Given a number, returns a Duration representing that many hours.
+  Without an argument, returns a ChronoUnit representing only hours."
+  ([]
+   (ChronoUnit/HOURS))
+  ([^Integer n]
+     (Duration/ofHours n)))
 
 (defn minutes
-  "Given a number, returns a Duration representing that many minutes."
-  [^Integer n]
-     (Duration/ofMinutes n))
+  "Given a number, returns a Duration representing that many minutes.
+  Without an argument, returns a ChronoUnit representing only minutes."
+  ([]
+   (ChronoUnit/MINUTES))
+  ([^Integer n]
+     (Duration/ofMinutes n)))
 
 (defn seconds
   "Given a number, returns a Duration representing that many seconds.
-   Without an argument, returns a PeriodType representing only seconds."
+   Without an argument, returns a ChronoUnit representing only seconds."
   ([]
      (ChronoUnit/SECONDS))
   ([^Integer n]
      (Duration/ofSeconds n)))
 
-  ; Inverval does not exist nor has an equivalent in Java 8
-(extend-protocol InTimeUnitProtocol
-  java.time.Duration
-  (in-millis [this] (.toDurationMillis this))
-  (in-seconds [this] (.getSeconds this))
-  (in-minutes [this] (.getMinutes this))
-  (in-hours [this] (.getHours this))
-  (in-days [this] (.getDays this))
-  (in-weeks [this] (.getWeeks this))
-  (in-months [this] (.getMonths this))
-  (in-years [this] (.getYears this))
-
-  java.time.Period
-  (in-days [this] (.getDays this))
-  (in-weeks [this] (.getWeeks this))
-  (in-months [this] (.getMonth this))
-  (in-years [this] (.getYears this)))
-
-
-
 (defn millis
   "Given a number, returns a Duration representing that many milliseconds.
    Without an argument, returns a ChronoUnit representing only milliseconds."
   ([]
-     (ChronoUnit/MILLIS))
-  ([^Integer n]
-     (Duration/ofMillis n)))
+   (ChronoUnit/MILLIS))
+  ([^Long n]
+   (Duration/ofMillis n)))
 
 (defn nanos
   "Given a number, returns a Duration representing that many nanoseconds.
    Without an argument, returns a ChronoUnit representing only nanoseconds."
   ([]
-    (ChronoUnit/NANOS))
-  ([^Integer n]
-    (Duration/ofNanos n)))
+   (ChronoUnit/NANOS))
+  ([^Long n]
+   (Duration/ofNanos n)))
+
+
+
+  ; Inverval does not exist nor has an equivalent in Java 8
+(extend-protocol InTimeUnitProtocol
+  ;java.time.temporal.TemporalAmount
+  ;(in-millis [this] (.get this (millis)))
+  ;(in-seconds [this] (.get this (seconds)))
+  ;(in-minutes [this] (.get this (minutes)))
+  ;(in-hours [this] (.get this (hours)))
+  ;(in-days [this] (.get this (days)))
+  ;(in-weeks [this] (.get this (weeks)))
+  ;(in-months [this] (.get this (months)))
+  ;(in-years [this] (.get this (years))))
+
+  java.time.Duration
+  (in-millis [this] (.toMillis this))
+  (in-seconds [this] (.getSeconds this))
+  (in-minutes [this] (.toMinutes this))
+  (in-hours [this] (.toHours this))
+  (in-days [this] (.toDays this))
+  (in-weeks [this] (throw (UnsupportedOperationException.)))
+  (in-months [this] (throw (UnsupportedOperationException.)))
+  (in-years [this] (throw (UnsupportedOperationException.)))
+
+  java.time.Period
+  (in-days [this] (throw (UnsupportedOperationException.)))
+  (in-weeks [this] (throw (UnsupportedOperationException.)))
+  (in-months [this] (.toTotalMonths this))
+  (in-years [this] (.. this (normalized) (getYears)))
+  (in-seconds [this] (throw (UnsupportedOperationException.))))
+
+
+
+
 
 (defn plus
   "Returns a new date/time corresponding to the given date/time moved forwards by
@@ -497,7 +531,7 @@
 (defn from-now
   "Returns a DateTime a supplied period after the present.
   e.g. (-> 30 minutes from-now)"
-  [^Period period]
+  [^TemporalAmount period]
   (plus (now) period))
 
 (defn tomorrow
@@ -612,19 +646,23 @@
          (day (last-day-of-the-month- (date-time year month)))))
 
 
-(defn do-at* [^ZonedDateTime base-date-time body-fn]
+(defn do-at*
+  "Creates a Clock that replaces the utc definition to call overloaded
+   methods in the library that will take a Clock instead of a ZoneId."
+  [^ZonedDateTime base-date-time body-fn]
     (with-redefs [utc (proxy [java.time.Clock] []
                         (getZone [] (ZoneId/of "Z"))
                         (instant [] (.toInstant base-date-time))
                         (withZone [zone-id] utc))]
       (body-fn)))
+
 (defmacro do-at
   "Like clojure.core/do except evalautes the expression at the given date-time"
   [^ZonedDateTime base-date-time & body]
   `(do-at* ~base-date-time
     (fn [] ~@body)))
 
-; This is a very clever implementation
+
 (defn ^ZonedDateTime floor
   "Floors the given date-time dt to the given time unit dt-fn,
   e.g. (floor (now) hour) returns (now) for all units

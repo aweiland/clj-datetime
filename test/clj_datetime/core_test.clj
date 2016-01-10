@@ -3,7 +3,8 @@
   (:require [clojure.test :refer :all]
             [clj-datetime.core :refer :all])
   (:import java.util.Date
-           java.time.ZonedDateTime))
+           java.time.ZonedDateTime
+           java.time.temporal.UnsupportedTemporalTypeException))
 
 (deftest test-now
   (is (= (date-time 2010 1 1)
@@ -39,7 +40,8 @@
     (is (= 4    (hour   d)))
     (is (= 3    (minute d)))
     (is (= 2    (second d)))
-    (is (= 1    (milli  d)))))
+    (is (= 1000000    (milli  d)))
+    (is (= 1    (nano d)))))
 
 (deftest test-date-midnight-and-accessors
   (let [d (date-midnight 1986)]
@@ -92,7 +94,8 @@
     (is (= 4    (hour   d)))
     (is (= 3    (minute d)))
     (is (= 2    (second d)))
-    (is (= 1    (milli  d)))))
+    (is (= 1000000 (milli d)))
+    (is (= 1    (nano  d)))))
 
 (deftest test-year-month-and-accessors
   (let [d (year-month 1986)]
@@ -138,7 +141,7 @@
   (is (= (time-zone-for-offset 10 0) (time-zone-for-offset 10))))
 
 (deftest test-time-zone-for-id
-  (is (= utc (time-zone-for-id "UTC"))))
+  (is (= utc (time-zone-for-id "Z"))))
 
 (deftest test-available-ids
   (is (some #{"UTC"} (available-ids))))
