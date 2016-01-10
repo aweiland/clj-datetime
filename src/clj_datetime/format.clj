@@ -31,11 +31,8 @@
   (:import [java.util Locale]
            [java.time ZonedDateTime ZoneId Period Duration]
            [java.time.format DateTimeFormatter]
-           [org.joda.time Chronology DateTime DateTimeZone Interval
-                          LocalDateTime Period PeriodType LocalDate LocalTime]
-           [org.joda.time.format DateTimeFormat DateTimeFormatter
-                                 DateTimePrinter DateTimeFormatterBuilder
-                                 DateTimeParser ISODateTimeFormat]))
+
+           ))
 
 (declare formatters)
 ;; The formatters map and show-formatters idea are strait from chrono.

@@ -11,13 +11,13 @@
          (do-at (date-time 2010 1 1)
                 (now)))))
 
-(deftest test-today-at-midnight
-  (is (= (date-midnight 2010 1 1)
-         (do-at (date-midnight 2010 1 1)
-                (today-at-midnight))))
-  (let [midnight (do-at (date-time 2010 1 15 2)
-                        (today-at-midnight (time-zone-for-offset -3)))]
-    (is (= 14 (day midnight)))))
+;(deftest test-today-at-midnight
+;  (is (= (date-midnight 2010 1 1)
+;         (do-at (date-midnight 2010 1 1)
+;                (today-at-midnight))))
+;  (let [midnight (do-at (date-time 2010 1 15 2)
+;                        (to-time-zone (today-at-midnight) (time-zone-for-offset -3)))]
+;    (is (= 14 (day midnight)))))
 
 (deftest test-epoch
   (let [e (epoch)]
@@ -43,23 +43,23 @@
     (is (= 1000000    (milli  d)))
     (is (= 1    (nano d)))))
 
-(deftest test-date-midnight-and-accessors
-  (let [d (date-midnight 1986)]
-    (is (= 1986 (year   d)))
-    (is (= 1    (month  d)))
-    (is (= 1    (day    d)))
-    (is (= 0    (hour   d)))
-    (is (= 0    (minute d)))
-    (is (= 0    (second    d)))
-    (is (= 0    (milli  d))))
-  (let [d (date-midnight 1986 10 14)]
-    (is (= 1986 (year   d)))
-    (is (= 10   (month  d)))
-    (is (= 14   (day    d)))
-    (is (= 0    (hour   d)))
-    (is (= 0    (minute d)))
-    (is (= 0    (second d)))
-    (is (= 0    (milli  d)))))
+;(deftest test-date-midnight-and-accessors
+;  (let [d (date-midnight 1986)]
+;    (is (= 1986 (year   d)))
+;    (is (= 1    (month  d)))
+;    (is (= 1    (day    d)))
+;    (is (= 0    (hour   d)))
+;    (is (= 0    (minute d)))
+;    (is (= 0    (second    d)))
+;    (is (= 0    (milli  d))))
+;  (let [d (date-midnight 1986 10 14)]
+;    (is (= 1986 (year   d)))
+;    (is (= 10   (month  d)))
+;    (is (= 14   (day    d)))
+;    (is (= 0    (hour   d)))
+;    (is (= 0    (minute d)))
+;    (is (= 0    (second d)))
+;    (is (= 0    (milli  d)))))
 
 (deftest test-min-and-max
   (let [ds [(date-time 1986 10 14 4 3 2 1)
@@ -117,7 +117,8 @@
     (is (= 12 (hour t)))
     (is (= 11 (minute t)))
     (is (= 10 (second t)))
-    (is (= 9 (milli t)))
+    (is (= 9000000 (milli t)))
+    (is (= 9 (nano t)))
     ))
 
 (deftest test-today
@@ -222,7 +223,7 @@
            (hours 4)
            (minutes 3)
            (seconds 2)
-           (millis 1))))
+           (nanos 1))))
   (is (= (local-date-time 1986 1 8)
          (plus (local-date-time 1986 1 1) (weeks 1)))))
 
@@ -637,4 +638,4 @@
 		(is (= (floor t hour)   (date-time 0 1 2 3)))
 		(is (= (floor t minute) (date-time 0 1 2 3 4)))
 		(is (= (floor t second) (date-time 0 1 2 3 4 5)))
-		(is (= (floor t milli)  (date-time 0 1 2 3 4 5 6)))))
+		(is (= (floor t nano)  (date-time 0 1 2 3 4 5 6)))))

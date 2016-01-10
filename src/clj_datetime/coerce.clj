@@ -13,9 +13,7 @@
   (:import [java.sql Timestamp]
            [java.util Date]
            [java.time Instant ZoneId LocalDateTime LocalDate ZonedDateTime ZoneId]
-           [java.time.temporal ChronoField]
-           [org.joda.time DateTime DateTimeZone DateMidnight YearMonth
-                          LocalDate LocalDateTime]))
+           [java.time.temporal ChronoField]))
 
 (defprotocol ICoerce
   (^java.time.ZonedDateTime

@@ -216,7 +216,8 @@
   (hour [this] (.getHour this))
   (minute [this] (.getMinute this))
   (second [this] (.getSecond this))
-  (milli [this] (* (.getNano this)) 1000000)
+  (milli [this] (* (.getNano this) 1000000))
+  (nano [this] (.getNano this))
   (equal? [this ^LocalTime that] (.isEqual this that))
   (after? [this ^LocalTime that] (.isAfter this that))
   (before? [this ^LocalTime that] (.isBefore this that))
@@ -229,6 +230,8 @@
       utc
   (ZoneId/of "Z"))
 
+; TODO Potentially add some way to use millis or nanos if someone wants joda/clj-time compatibility
+
 (defn now
   "Returns a DateTime for the current instant in the UTC time zone."
   []
@@ -237,32 +240,35 @@
 (defn time-now
   "Returns a LocalTime for the current instant without date or time zone
   using ISOChronology in the current time zone."
-  []
-  (LocalTime/now))
-
-(defn today-at-midnight
-  "Returns a DateMidnight for today at midnight in the UTC time zone."
   ([]
-   (today-at-midnight utc))
-  ([^ZoneId tz]
-   (.atStartOfDay (LocalDate/now) tz)))
+  (time-now utc))
+  ([tz]
+    (LocalTime/now tz)))
+
+; Joda deprecated the Midnight stuff
+;(defn today-at-midnight
+  ;"Returns a ZonedDateTime for today at midnight in the UTC time zone."
+  ;[]
+  ; (.atStartOfDay (today) utc))
 
 (defn epoch
   "Returns a DateTime for the begining of the Unix epoch in the UTC time zone."
   []
   (ZonedDateTime/ofInstant Instant/EPOCH utc))
 
-(defn date-midnight
-  "Constructs and returns a new LocalDate in UTC.
-   Specify the year, month of year, day of month. Note that month and day are
-   1-indexed. Any number of least-significant components can be ommited, in which case
-   they will default to 1."
-  ([year]
-    (date-midnight year 1 1))
-  ([^long year ^long month]
-    (date-midnight year month 1))
-  ([^Long year ^Long month ^Long day]
-   (.atStartOfDay (LocalDate/of year month day) utc)))
+; Midnight in Joda was deprecated and not recommended for use.
+; Will re-add this feature if asked for
+;(defn date-midnight
+;  "Constructs and returns a new LocalDate in UTC.
+;   Specify the year, month of year, day of month. Note that month and day are
+;   1-indexed. Any number of least-significant components can be ommited, in which case
+;   they will default to 1."
+;  ([year]
+;    (date-midnight year 1 1))
+;  ([^long year ^long month]
+;    (date-midnight year month 1))
+;  ([^Long year ^Long month ^Long day]
+;   (.atStartOfDay (LocalDate/of year month day) utc)))
 
 (defn min-date
   "Minimum of the provided DateTimes."
@@ -346,15 +352,15 @@
    (local-time hour minute 0 0))
   ([hour minute second]
    (local-time hour minute second 0))
-  ([^Integer hour ^Integer minute ^Integer second ^Integer millis]
-   (LocalTime/of hour minute second millis))
+  ([^Integer hour ^Integer minute ^Integer second ^Integer nano]
+   (LocalTime/of hour minute second nano))
   )
 
 (defn ^java.time.LocalDate today
   "Constructs and returns a new LocalDate representing today's date.
    LocalDate objects do not deal with timezones at all."
   []
-  (LocalDate/now))
+  (LocalDate/now utc))
 
 (defn time-zone-for-offset
   "Returns a ZoneOffset for the given offset, specified either in hours or
@@ -382,14 +388,14 @@
 
 (defn ^java.time.ZonedDateTime to-time-zone
   "Returns a new ZonedDateTime corresponding to the same absolute instant in time as
-   the given DateTime, but with calendar fields corresponding to the given
+   the given ZonedDateTime, but with calendar fields corresponding to the given
    ZoneId."
   [^ZonedDateTime dt ^ZoneId tz]
   (.withZoneSameInstant dt tz))
 
 (defn ^java.time.ZonedDateTime from-time-zone
-  "Returns a new DateTime corresponding to the same point in calendar time as
-   the given DateTime, but for a correspondingly different absolute instant in
+  "Returns a new ZonedDateTime corresponding to the same point in calendar time as
+   the given ZonedDateTime, but for a correspondingly different absolute instant in
    time."
   [^ZonedDateTime dt ^ZoneId tz]
   (.withZoneSameLocal dt tz))
@@ -668,7 +674,7 @@
   e.g. (floor (now) hour) returns (now) for all units
   up to and including the hour"
   ([^ZonedDateTime dt dt-fn]
-	 (let [dt-fns [year month day hour minute second milli]]
+	 (let [dt-fns [year month day hour minute second nano]]
 	 	(apply date-time
 	 		(map apply
 				(concat (take-while (partial not= dt-fn) dt-fns) [dt-fn])
