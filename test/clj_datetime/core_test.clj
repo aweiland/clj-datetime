@@ -323,7 +323,10 @@
 
 (deftest test-extend
   (is (= (interval (date-time 1986) (date-time 1988))
-         (extend (interval (date-time 1986) (date-time 1987)) (years 1)))))
+         (extend (interval (date-time 1986) (date-time 1987)) (years 1))))
+  (is (= (interval (date-time 1986) (date-time 1998))
+         (extend (interval (date-time 1986) (date-time 1987)) (years 1) (years 10))))
+  )
 ;
 ;(deftest test-interval-in
 ;  (let [p (interval (date-time 1986 10 14 12 5 4) (date-time 1986 11 3  22 2 6))]
