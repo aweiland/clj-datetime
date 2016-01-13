@@ -134,9 +134,9 @@
   (in-years [this] "Return the time in years"))
 
 (defprotocol IntervalProtocol
-  (start [this] "Returns interval start")
-  (end [this] "Returns interval end")
-  (extend [this & by] "Returns an Interval with an end ReadableDateTime the specified Period after the end
+  (start [this] "Returns interval start ZonedDateTime")
+  (end [this] "Returns interval end ZonedDateTime")
+  (extend [this & by] "Returns an Interval with an end ZonedDateTime the specified Period after the end
        of the given Interval")
   (within? [this ^ZonedDateTime zdt] "Returns true if the given Interval contains the given ZonedDateTime")
   (overlaps? [this i-b] "Returns true of the two given Intervals overlap.")
@@ -581,8 +581,7 @@
   IntervalProtocol
   (start [this] (:start this))
   (end [this] (:end this))
-  (extend [this & by] "Returns an Interval with an end ReadableDateTime the specified Period after the end
-       of the given Interval")
+  (extend [this & by] (->Interval (:start this) (apply plus (:end this) by)))
   (within? [this zdt] "Returns true if the given Interval contains the given ZonedDateTime" true)
   (overlaps? [this i-b] "Returns true of the two given Intervals overlap." true)
   (abuts? [this i-b] "Returns true if Interval i-a abuts i-b, i.e. then end of i-a is exactly the
