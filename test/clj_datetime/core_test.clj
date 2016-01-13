@@ -152,14 +152,14 @@
         dt1 (date-time 1986 10 14 6)
         dt2 (to-time-zone dt1 tz)]
     (is (= 8 (hour dt2)))
-    (is (= (.getMillis dt1) (.getMillis dt2)))))
+    (is (= (.isEqual dt1 dt2)))))
 
 (deftest test-from-time-zone
   (let [tz  (time-zone-for-offset 2)
         dt1 (date-time 1986 10 14 6)
         dt2 (from-time-zone dt1 tz)]
     (is (= 6 (hour dt2)))
-    (is (> (.getMillis dt1) (.getMillis dt2)))))
+    (is (> (.isEqual dt1 dt2)))))
 
 (deftest test-equal?
   (is (equal? (date-time 2013 01 01 00)
@@ -188,7 +188,7 @@
            (hours 4)
            (minutes 3)
            (seconds 2)
-           (millis 1))))
+           (nanos 1))))
   (is (= (date-time 1986 1 8)
          (plus (date-time 1986 1 1) (weeks 1)))))
 
@@ -572,7 +572,7 @@
     (is (= d9 (last-day-of-the-month d11)))))
 
 (deftest test-week-number-of-year
-  (is (= 52 (week-number-of-year (date-time 2012 1 1))))
+  (is (= 1 (week-number-of-year (date-time 2012 1 1))))
   (is (= 1 (week-number-of-year (date-time 2012 1 2))))
   (is (= 1 (week-number-of-year (date-time 2012 1 8))))
   (is (= 2 (week-number-of-year (date-time 2012 1 9))))
@@ -624,7 +624,7 @@
 (deftest test-today-at
   (let [^ZonedDateTime n  (now)
         y  (.getYear n)
-        m  (.getMonthOfYear n)
+        m  (.getMonthValue n)
         d  (.getDayOfMonth n)
         d1 (date-time y m d 13 0)]
     (is (= d1 (today-at 13 0)))

@@ -91,7 +91,7 @@
   (:refer-clojure :exclude [extend second])
   (:import [java.time Instant ZoneId LocalDateTime LocalTime LocalDate
                       ZonedDateTime ZoneId ZoneOffset
-                      Period Duration YearMonth]
+                      Period Duration YearMonth Clock]
            [java.time.temporal TemporalAmount ChronoUnit ChronoField TemporalAdjusters]
            [java.time.chrono ChronoZonedDateTime ChronoLocalDateTime ChronoLocalDate]
            ))
@@ -188,7 +188,7 @@
 
   java.time.YearMonth
   (year [this] (.getYear this))
-  (month [this] (.getMonthOfYear this))
+  (month [this] (.getMonthValue this))
   (equal? [this ^YearMonth that] (.isEqual this that))
   (after? [this ^YearMonth that] (.isAfter this that))
   (before? [this ^YearMonth that] (.isBefore this that))
@@ -229,6 +229,10 @@
 (def ^{:doc "ZoneId for UTC."}
       utc
   (ZoneId/of "Z"))
+
+(def ^{:doc "Default clock.  Useful for with-redefs in testing."}
+      clock-
+  (Clock/system utc))
 
 ; TODO Potentially add some way to use millis or nanos if someone wants joda/clj-time compatibility
 
@@ -501,7 +505,8 @@
   (in-weeks [this] (throw (UnsupportedOperationException.)))
   (in-months [this] (.toTotalMonths this))
   (in-years [this] (.. this (normalized) (getYears)))
-  (in-seconds [this] (throw (UnsupportedOperationException.))))
+  (in-seconds [this] (throw (UnsupportedOperationException.)))
+  (in-minutes [this] (throw (UnsupportedOperationException.))))
 
 
 
@@ -529,16 +534,19 @@
   [^TemporalAmount period]
   (minus (now) period))
 
-(defn yesterday
-  "Returns a ZonedDateTime for yesterday relative to now"
-  []
-  (-> 1 days ago))
+
 
 (defn from-now
   "Returns a DateTime a supplied period after the present.
   e.g. (-> 30 minutes from-now)"
   [^TemporalAmount period]
   (plus (now) period))
+
+
+(defn yesterday
+  "Returns a ZonedDateTime for yesterday relative to now"
+  []
+  (-> 1 days ago))
 
 (defn tomorrow
   "Returns a ZonedDateTime for tomorrow relative to now"
