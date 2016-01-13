@@ -136,7 +136,7 @@
 (defprotocol IntervalProtocol
   (start [this] "Returns interval start ZonedDateTime")
   (end [this] "Returns interval end ZonedDateTime")
-  (extend [this & by] "Returns an Interval with an end ZonedDateTime the specified Period after the end
+  (extend- [this by] "Returns an Interval with an end ZonedDateTime the specified Period after the end
        of the given Interval")
   (within? [this ^ZonedDateTime zdt] "Returns true if the given Interval contains the given ZonedDateTime")
   (overlaps? [this i-b] "Returns true of the two given Intervals overlap.")
@@ -581,7 +581,7 @@
   IntervalProtocol
   (start [this] (:start this))
   (end [this] (:end this))
-  (extend [this & by] (->Interval (:start this) (apply plus (:end this) by)))
+  (extend- [this by] (->Interval (:start this) (plus (:end this) by)))
   (within? [this zdt] "Returns true if the given Interval contains the given ZonedDateTime" true)
   (overlaps? [this i-b] "Returns true of the two given Intervals overlap." true)
   (abuts? [this i-b] "Returns true if Interval i-a abuts i-b, i.e. then end of i-a is exactly the
@@ -593,11 +593,11 @@
   (->Interval dt-a dt-b))
 
 
-;(defn extend
-;  "Returns an Interval with an end ReadableDateTime the specified Period after the end
-;   of the given Interval"
-;  [^Interval in & by]
-;  (.withEnd in (apply plus (end in) by)))
+(defn extend
+  "Returns an Interval with an end ZonedDateTime the specified Period after the end
+   of the given Interval"
+  [^Interval in & by]
+  (reduce (fn [in' by'] (extend- in' by') ) in by))
 
 
 ;(defn within?
