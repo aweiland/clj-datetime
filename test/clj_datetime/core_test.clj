@@ -574,11 +574,11 @@
 (deftest test-week-number-of-year
   (is (= 1 (week-number-of-year (date-time 2012 1 1))))
   (is (= 1 (week-number-of-year (date-time 2012 1 2))))
-  (is (= 1 (week-number-of-year (date-time 2012 1 8))))
+  (is (= 2 (week-number-of-year (date-time 2012 1 8))))
   (is (= 2 (week-number-of-year (date-time 2012 1 9))))
   (is (= 34 (week-number-of-year (date-time 2012 8 20))))
-  (is (= 52 (week-number-of-year (date-time 2012 12 30))))
-  (is (= 1 (week-number-of-year (date-time 2012 12 31))))
+  (is (= 53 (week-number-of-year (date-time 2012 12 30))))
+  (is (= 53 (week-number-of-year (date-time 2012 12 31))))
   (is (= 1 (week-number-of-year (date-time 2013 1 1)))))
 
 (deftest test-number-of-days-in-the-month
