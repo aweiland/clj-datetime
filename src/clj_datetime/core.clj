@@ -239,7 +239,7 @@
 (defn now
   "Returns a DateTime for the current instant in the UTC time zone."
   []
-  (ZonedDateTime/now utc))
+  (ZonedDateTime/now clock-))
 
 (defn time-now
   "Returns a LocalTime for the current instant without date or time zone
@@ -364,7 +364,7 @@
   "Constructs and returns a new LocalDate representing today's date.
    LocalDate objects do not deal with timezones at all."
   []
-  (LocalDate/now utc))
+  (LocalDate/now clock-))
 
 (defn time-zone-for-offset
   "Returns a ZoneOffset for the given offset, specified either in hours or
@@ -496,17 +496,22 @@
   (in-minutes [this] (.toMinutes this))
   (in-hours [this] (.toHours this))
   (in-days [this] (.toDays this))
-  (in-weeks [this] (throw (UnsupportedOperationException.)))
+  (in-weeks [this] (-> this in-days (quot 7)))
+  ;(in-weeks [this] (/ (in-days this) 7))
   (in-months [this] (throw (UnsupportedOperationException.)))
   (in-years [this] (throw (UnsupportedOperationException.)))
 
   java.time.Period
+  (in-millis [this] (throw (UnsupportedOperationException.)))
+  (in-seconds [this] (throw (UnsupportedOperationException.)))
+  (in-minutes [this] (throw (UnsupportedOperationException.)))
+  (in-hours [this] (throw (UnsupportedOperationException.)))
   (in-days [this] (throw (UnsupportedOperationException.)))
   (in-weeks [this] (throw (UnsupportedOperationException.)))
   (in-months [this] (.toTotalMonths this))
-  (in-years [this] (.. this (normalized) (getYears)))
-  (in-seconds [this] (throw (UnsupportedOperationException.)))
-  (in-minutes [this] (throw (UnsupportedOperationException.))))
+  (in-years [this] (.. this (normalized) (getYears))))
+
+
 
 
 
@@ -664,7 +669,7 @@
   "Creates a Clock that replaces the utc definition to call overloaded
    methods in the library that will take a Clock instead of a ZoneId."
   [^ZonedDateTime base-date-time body-fn]
-    (with-redefs [utc (proxy [java.time.Clock] []
+    (with-redefs [clock- (proxy [java.time.Clock] []
                         (getZone [] (ZoneId/of "Z"))
                         (instant [] (.toInstant base-date-time))
                         (withZone [zone-id] utc))]
