@@ -133,6 +133,16 @@
   (in-months [this] "Return the time in months")
   (in-years [this] "Return the time in years"))
 
+(defprotocol IntervalProtocol
+  (start [this] "Returns interval start")
+  (end [this] "Returns interval end")
+  (extend [this & by] "Returns an Interval with an end ReadableDateTime the specified Period after the end
+       of the given Interval")
+  (within? [this ^ZonedDateTime zdt] "Returns true if the given Interval contains the given ZonedDateTime")
+  (overlaps? [this i-b] "Returns true of the two given Intervals overlap.")
+  (abuts? [this i-b] "Returns true if Interval i-a abuts i-b, i.e. then end of i-a is exactly the
+    beginning of i-b."))
+
 (extend-protocol DateTimeProtocol
   java.time.ZonedDateTime
   (year [this] (.getYear this))
@@ -141,10 +151,6 @@
   (day-of-week [this] (.. this (getDayOfWeek) (getValue)))
   (hour [this] (.getHour this))
   (minute [this] (.getMinute this))
-  (sec [this]
-    {:deprecated "0.6.0"}
-    (deprecated "sec is being deprecated in favor of second")
-    (.getSecond this))
   (second [this] (.getSecond this))
   (milli [this] (* (.getNano this) 1000000))
   (nano [this] (.getNano this))
@@ -491,17 +497,18 @@
   ;(in-years [this] (.get this (years))))
 
   java.time.Duration
+  (in-nanos [this] (.toNanos this))
   (in-millis [this] (.toMillis this))
   (in-seconds [this] (.getSeconds this))
   (in-minutes [this] (.toMinutes this))
   (in-hours [this] (.toHours this))
   (in-days [this] (.toDays this))
   (in-weeks [this] (-> this in-days (quot 7)))
-  ;(in-weeks [this] (/ (in-days this) 7))
   (in-months [this] (throw (UnsupportedOperationException.)))
   (in-years [this] (throw (UnsupportedOperationException.)))
 
   java.time.Period
+  (in-nanos [this] (throw (UnsupportedOperationException.)))
   (in-millis [this] (throw (UnsupportedOperationException.)))
   (in-seconds [this] (throw (UnsupportedOperationException.)))
   (in-minutes [this] (throw (UnsupportedOperationException.)))
@@ -510,11 +517,6 @@
   (in-weeks [this] (throw (UnsupportedOperationException.)))
   (in-months [this] (.toTotalMonths this))
   (in-years [this] (.. this (normalized) (getYears))))
-
-
-
-
-
 
 
 (defn plus
@@ -574,21 +576,23 @@
      (reduce (fn [dt1 dt2]
                (if (neg? (compare dt1 dt2)) dt2 dt1)) dts)))
 
-;(defn interval
-;  "Returns an interval representing the span between the two given ReadableDateTimes.
-;   Note that intervals are closed on the left and open on the right."
-;  [^ReadableDateTime dt-a ^ReadableDateTime dt-b]
-;  (Interval. dt-a dt-b))
 
-;(defn start
-;  "Returns the start DateTime of an Interval."
-;  [^Interval in]
-;  (.getStart in))
-;
-;(defn end
-;  "Returns the end DateTime of an Interval."
-;  [^Interval in]
-;  (.getEnd in))
+(defrecord Interval [start end]
+  IntervalProtocol
+  (start [this] (:start this))
+  (end [this] (:end this))
+  (extend [this & by] "Returns an Interval with an end ReadableDateTime the specified Period after the end
+       of the given Interval")
+  (within? [this zdt] "Returns true if the given Interval contains the given ZonedDateTime" true)
+  (overlaps? [this i-b] "Returns true of the two given Intervals overlap." true)
+  (abuts? [this i-b] "Returns true if Interval i-a abuts i-b, i.e. then end of i-a is exactly the
+    beginning of i-b." true))
+
+(defn interval
+  "Returns an interval representing the span between the two given ZonedDateTimes."
+  [^ZonedDateTime dt-a ^ZonedDateTime dt-b]
+  (->Interval dt-a dt-b))
+
 
 ;(defn extend
 ;  "Returns an Interval with an end ReadableDateTime the specified Period after the end

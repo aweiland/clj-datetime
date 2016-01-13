@@ -314,12 +314,12 @@
       (is (= d2 (latest [d1 d2 nil])))
       (is (= d2 (latest d2 nil)))))
 
-;(deftest test-start-end
-;  (let [s (date-time 1986 10 14 12 5 4)
-;        e (date-time 1986 11 3  22 2 6)
-;        p (interval s e)]
-;    (is (= s (start p)))
-;    (is (= e (end p)))))
+(deftest test-start-end
+  (let [s (date-time 1986 10 14 12 5 4)
+        e (date-time 1986 11 3  22 2 6)
+        p (interval s e)]
+    (is (= s (start p)))
+    (is (= e (end p)))))
 
 ;(deftest test-extend
 ;  (is (= (interval (date-time 1986) (date-time 1988))
