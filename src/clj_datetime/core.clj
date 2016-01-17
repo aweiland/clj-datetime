@@ -562,7 +562,7 @@
   (start [this] (:i-start this))
   (end [this] (:i-end this))
   (extend- [this by] (->Interval (start this) (plus (end this) by)))
-  (within? [this zdt] (and (before? (start this) zdt) (after? zdt (end this))))
+  (within? [this zdt] (and (before? (start this) zdt) (after? (end this) zdt)))
   (overlaps? [this i-b] (xor (before? (start this) (end i-b)) (after? (start i-b) (end this))))
   (abuts? [this i-b] (xor (equal? (start this) (end i-b)) (equal? (end this) (start i-b))))
   (to-period [this] (Period/between (-> this start (.toLocalDate)) (-> this end (.toLocalDate))))

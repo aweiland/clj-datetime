@@ -419,51 +419,52 @@
   (is (= 1 (-> 14 months in-years)))
   (is (= 3 (-> 3 years in-years))))
 
-;(deftest test-within?
-;  (let [d1 (date-time 1985)
-;        d2 (date-time 1986)
-;        d3 (date-time 1987)
-;        d4 (date-time 2013 01 01 00)
-;        d5 (date-time 2013 01 01 01)
-;        ld1 (local-date 2013 1 1)
-;        ld2 (local-date 2013 2 28)
-;        ld3 (local-date 2013 10 5)
-;        dtz1 (from-time-zone (date-time 2013 01 01 02)
-;                             (time-zone-for-offset 1))]
-;    (is (within? (interval d1 d3) d2))
-;    (is (not (within? (interval d1 d2) d3)))
-;    (is (not (within? (interval d1 d2) d2)))
-;    (is (not (within? (interval d2 d3) d1)))
-;    (is (within? d4 d5 dtz1))
-;    (is (within? ld1 ld3 ld2))
-;    (is (not (within? ld1 ld2 ld3)))
-;    (is (not (within? ld3 ld2 ld1)))
-;    (is (not (within? ld2 ld3 ld1)))))
+(deftest test-within?
+  (let [d1 (date-time 1985)
+        d2 (date-time 1986)
+        d3 (date-time 1987)
+        d4 (date-time 2013 01 01 00)
+        d5 (date-time 2013 01 01 01)
+        ld1 (local-date 2013 1 1)
+        ld2 (local-date 2013 2 28)
+        ld3 (local-date 2013 10 5)
+        dtz1 (from-time-zone (date-time 2013 01 01 02)
+                             (time-zone-for-offset 1))]
+    (is (within? (interval d1 d3) d2))
+    (is (not (within? (interval d1 d2) d3)))
+    (is (not (within? (interval d1 d2) d2)))
+    (is (not (within? (interval d2 d3) d1)))
+    ;(is (within? d4 d5 dtz1))
+    ;(is (within? ld1 ld3 ld2))
+    ;(is (not (within? ld1 ld2 ld3)))
+    ;(is (not (within? ld3 ld2 ld1)))
+    ;(is (not (within? ld2 ld3 ld1)))))
+    ))
 ;
-;(deftest test-time-after?
-;  (let [t1 (local-time 11 12 13)
-;        t2 (local-time 12 13 14)
-;        t3 (local-time 13 14 15)]
-;    (is (after? t2 t1))
-;    (is (after? t3 t2))
-;    (is (after? t3 t1))
-;    (is (not (after? t2 t3)))
-;    (is (not (after? t1 t2)))
-;    (is (not (after? t1 t3)))
-;    ))
-;
-;(deftest test-time-before?
-;  (let [t1 (local-time 11 12 13)
-;        t2 (local-time 12 13 14)
-;        t3 (local-time 13 14 15)]
-;    (is (before? t1 t2))
-;    (is (before? t2 t3))
-;    (is (before? t1 t3))
-;    (is (not (before? t3 t2)))
-;    (is (not (before? t2 t1)))
-;    (is (not (before? t3 t1)))
-;    ))
-;
+(deftest test-time-after?
+  (let [t1 (local-time 11 12 13)
+        t2 (local-time 12 13 14)
+        t3 (local-time 13 14 15)]
+    (is (after? t2 t1))
+    (is (after? t3 t2))
+    (is (after? t3 t1))
+    (is (not (after? t2 t3)))
+    (is (not (after? t1 t2)))
+    (is (not (after? t1 t3)))
+    ))
+
+(deftest test-time-before?
+  (let [t1 (local-time 11 12 13)
+        t2 (local-time 12 13 14)
+        t3 (local-time 13 14 15)]
+    (is (before? t1 t2))
+    (is (before? t2 t3))
+    (is (before? t1 t3))
+    (is (not (before? t3 t2)))
+    (is (not (before? t2 t1)))
+    (is (not (before? t3 t1)))
+    ))
+
 (deftest test-overlaps?
   (let [d1 (date-time 1985)
         d2 (date-time 1986)
