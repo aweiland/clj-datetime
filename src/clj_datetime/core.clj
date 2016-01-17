@@ -99,6 +99,20 @@
 (defn deprecated [message]
   (println "DEPRECATION WARNING: " message))
 
+(defmacro xor
+  "Logical XOR. This might be better as a fn."
+  ([] nil)
+  ([a] a)
+  ([a b]
+    `(let [a# ~a
+           b# ~b]
+       (if a#
+         (if b# nil a#)
+         (if b# b# nil))))
+  ([a b & more]
+    `(xor (xor ~a ~b) (xor ~@more))))
+
+
 (defprotocol DateTimeProtocol
   "Interface for various date time functions"
   (year [this] "Return the year component of the given date/time.")
@@ -141,7 +155,9 @@
   (within? [this ^ZonedDateTime zdt] "Returns true if the given Interval contains the given ZonedDateTime")
   (overlaps? [this i-b] "Returns true of the two given Intervals overlap.")
   (abuts? [this i-b] "Returns true if Interval i-a abuts i-b, i.e. then end of i-a is exactly the
-    beginning of i-b."))
+    beginning of i-b.")
+  (to-period [this] "Turn this interval into a period (if possible)")
+  (to-duration [this] "Turn this interval into a duration (if possible)"))
 
 (extend-protocol DateTimeProtocol
   java.time.ZonedDateTime
@@ -483,42 +499,6 @@
    (Duration/ofNanos n)))
 
 
-
-  ; Inverval does not exist nor has an equivalent in Java 8
-(extend-protocol InTimeUnitProtocol
-  ;java.time.temporal.TemporalAmount
-  ;(in-millis [this] (.get this (millis)))
-  ;(in-seconds [this] (.get this (seconds)))
-  ;(in-minutes [this] (.get this (minutes)))
-  ;(in-hours [this] (.get this (hours)))
-  ;(in-days [this] (.get this (days)))
-  ;(in-weeks [this] (.get this (weeks)))
-  ;(in-months [this] (.get this (months)))
-  ;(in-years [this] (.get this (years))))
-
-  java.time.Duration
-  (in-nanos [this] (.toNanos this))
-  (in-millis [this] (.toMillis this))
-  (in-seconds [this] (.getSeconds this))
-  (in-minutes [this] (.toMinutes this))
-  (in-hours [this] (.toHours this))
-  (in-days [this] (.toDays this))
-  (in-weeks [this] (-> this in-days (quot 7)))
-  (in-months [this] (throw (UnsupportedOperationException.)))
-  (in-years [this] (throw (UnsupportedOperationException.)))
-
-  java.time.Period
-  (in-nanos [this] (throw (UnsupportedOperationException.)))
-  (in-millis [this] (throw (UnsupportedOperationException.)))
-  (in-seconds [this] (throw (UnsupportedOperationException.)))
-  (in-minutes [this] (throw (UnsupportedOperationException.)))
-  (in-hours [this] (throw (UnsupportedOperationException.)))
-  (in-days [this] (throw (UnsupportedOperationException.)))
-  (in-weeks [this] (throw (UnsupportedOperationException.)))
-  (in-months [this] (.toTotalMonths this))
-  (in-years [this] (.. this (normalized) (getYears))))
-
-
 (defn plus
   "Returns a new date/time corresponding to the given date/time moved forwards by
    the given Period(s)."
@@ -577,15 +557,51 @@
                (if (neg? (compare dt1 dt2)) dt2 dt1)) dts)))
 
 
-(defrecord Interval [start end]
+(defrecord Interval [i-start i-end]
   IntervalProtocol
-  (start [this] (:start this))
-  (end [this] (:end this))
-  (extend- [this by] (->Interval (:start this) (plus (:end this) by)))
-  (within? [this zdt] "Returns true if the given Interval contains the given ZonedDateTime" true)
-  (overlaps? [this i-b] "Returns true of the two given Intervals overlap." true)
-  (abuts? [this i-b] "Returns true if Interval i-a abuts i-b, i.e. then end of i-a is exactly the
-    beginning of i-b." true))
+  (start [this] (:i-start this))
+  (end [this] (:i-end this))
+  (extend- [this by] (->Interval (start this) (plus (end this) by)))
+  (within? [this zdt] (and (before? (start this) zdt) (after? zdt (end this))))
+  (overlaps? [this i-b] (xor (before? (start this) (end i-b)) (after? (start i-b) (end this))))
+  (abuts? [this i-b] (xor (equal? (start this) (end i-b)) (equal? (end this) (start i-b))))
+  (to-period [this] (Period/between (-> this start (.toLocalDate)) (-> this end (.toLocalDate))))
+  (to-duration [this] (Duration/between (start this) (end this))))
+
+(extend-protocol InTimeUnitProtocol
+  java.time.Duration
+  (in-nanos [this] (.toNanos this))
+  (in-millis [this] (.toMillis this))
+  (in-seconds [this] (.getSeconds this))
+  (in-minutes [this] (.toMinutes this))
+  (in-hours [this] (.toHours this))
+  (in-days [this] (.toDays this))
+  (in-weeks [this] (-> this in-days (quot 7)))
+  (in-months [this] (throw (UnsupportedOperationException.)))
+  (in-years [this] (throw (UnsupportedOperationException.)))
+
+  java.time.Period
+  (in-nanos [this] (throw (UnsupportedOperationException.)))
+  (in-millis [this] (throw (UnsupportedOperationException.)))
+  (in-seconds [this] (throw (UnsupportedOperationException.)))
+  (in-minutes [this] (throw (UnsupportedOperationException.)))
+  (in-hours [this] (throw (UnsupportedOperationException.)))
+  (in-days [this] (throw (UnsupportedOperationException.)))
+  (in-weeks [this] (throw (UnsupportedOperationException.)))
+  (in-months [this] (.toTotalMonths this))
+  (in-years [this] (.. this (normalized) (getYears)))
+
+  Interval ; TODO MAKE THIS is tested!!!!!
+  (in-nanos [this] (in-nanos (to-duration this)))
+  (in-millis [this] (in-millis (to-duration this)))
+  (in-seconds [this] (in-seconds (to-duration this)))
+  (in-minutes [this] (in-minutes (to-duration this)))
+  (in-hours [this] (in-hours (to-duration this)))
+  (in-days [this] (in-days (to-duration this)))
+  (in-weeks [this] (in-weeks (to-duration this)))
+  (in-months [this] (in-months (to-period this)))
+  (in-years [this] (in-years (to-period this))))
+
 
 (defn interval
   "Returns an interval representing the span between the two given ZonedDateTimes."

@@ -327,25 +327,25 @@
   (is (= (interval (date-time 1986) (date-time 1998))
          (extend (interval (date-time 1986) (date-time 1987)) (years 1) (years 10))))
   )
-;
-;(deftest test-interval-in
-;  (let [p (interval (date-time 1986 10 14 12 5 4) (date-time 1986 11 3  22 2 6))]
-;    (is (= 0       (in-years p)))
-;    (is (= 0       (in-months p)))
-;    (is (= 2       (in-weeks p)))
-;    (is (= 20      (in-days p)))
-;    (is (= 489     (in-hours p)))
-;    (is (= 29397   (in-minutes p)))
-;    (is (= 1763822 (in-seconds p)))
-;    (is (= 1763822000 (in-millis p)))))
-;
-;(deftest test-interval-in-bigger
-;  (let [p (interval (date-time 1986 10 14 12 5 4) (date-time 1987 11 3  22 2 6))]
-;    (is (= 1       (in-years p)))
-;    (is (= 12      (in-months p)))
-;    (is (= 55      (in-weeks p)))
-;    (is (= 385     (in-days p)))
-;    (is (= 9249    (in-hours p)))))
+
+(deftest test-interval-in
+  (let [p (interval (date-time 1986 10 14 12 5 4) (date-time 1986 11 3  22 2 6))]
+    (is (= 0       (in-years p)))
+    (is (= 0       (in-months p)))
+    (is (= 2       (in-weeks p)))
+    (is (= 20      (in-days p)))
+    (is (= 489     (in-hours p)))
+    (is (= 29397   (in-minutes p)))
+    (is (= 1763822 (in-seconds p)))
+    (is (= 1763822000 (in-millis p)))))
+
+(deftest test-interval-in-bigger
+  (let [p (interval (date-time 1986 10 14 12 5 4) (date-time 1987 11 3  22 2 6))]
+    (is (= 1       (in-years p)))
+    (is (= 12      (in-months p)))
+    (is (= 55      (in-weeks p)))
+    (is (= 385     (in-days p)))
+    (is (= 9249    (in-hours p)))))
 
 (deftest test-period-in-millis
   (is (= 30000      (-> 30 seconds in-millis)))
@@ -464,30 +464,32 @@
 ;    (is (not (before? t3 t1)))
 ;    ))
 ;
-;(deftest test-overlaps?
-;  (let [d1 (date-time 1985)
-;        d2 (date-time 1986)
-;        d3 (date-time 1987)
-;        d4 (date-time 1988)
-;        ld1 (local-date 2013 1 1)
-;        ld2 (local-date 2013 2 5)
-;        ld3 (local-date 2013 2 28)
-;        ld4 (local-date 2014 1 1)
-;        ld5 (local-date 2014 5 6)]
-;    (is (overlaps? (interval d1 d3) (interval d2 d4)))
-;    (is (overlaps? (interval d1 d3) (interval d2 d3)))
-;    (is (not (overlaps? (interval d1 d2) (interval d2 d3))))
-;    (is (not (overlaps? (interval d1 d2) (interval d3 d4))))
-;    (is (overlaps? ld1 ld3 ld2 ld4))
-;    (is (overlaps? ld2 ld4 ld3 ld5))
-;    (is (overlaps? ld1 ld5 ld1 ld5))
-;    (is (overlaps? ld1 ld5 ld2 ld4))
-;    (is (overlaps? ld2 ld4 ld1 ld5))
-;    (is (overlaps? ld1 ld2 ld2 ld3))
-;    (is (overlaps? ld2 ld3 ld1 ld2))
-;    (is (not (overlaps? ld1 ld2 ld3 ld4)))
-;    (is (not (overlaps? ld1 ld3 ld4 ld5)))))
-;
+(deftest test-overlaps?
+  (let [d1 (date-time 1985)
+        d2 (date-time 1986)
+        d3 (date-time 1987)
+        d4 (date-time 1988)
+        ld1 (local-date 2013 1 1)
+        ld2 (local-date 2013 2 5)
+        ld3 (local-date 2013 2 28)
+        ld4 (local-date 2014 1 1)
+        ld5 (local-date 2014 5 6)]
+    (is (overlaps? (interval d1 d3) (interval d2 d4)))
+    (is (overlaps? (interval d1 d3) (interval d2 d3)))
+    (is (not (overlaps? (interval d1 d2) (interval d2 d3))))
+    (is (not (overlaps? (interval d1 d2) (interval d3 d4))))
+    ; TODO add 4 arity function?  Is it useful?
+    ;(is (overlaps? ld1 ld3 ld2 ld4))
+    ;(is (overlaps? ld2 ld4 ld3 ld5))
+    ;(is (overlaps? ld1 ld5 ld1 ld5))
+    ;(is (overlaps? ld1 ld5 ld2 ld4))
+    ;(is (overlaps? ld2 ld4 ld1 ld5))
+    ;(is (overlaps? ld1 ld2 ld2 ld3))
+    ;(is (overlaps? ld2 ld3 ld1 ld2))
+    ;(is (not (overlaps? ld1 ld2 ld3 ld4)))
+    ;(is (not (overlaps? ld1 ld3 ld4 ld5))))
+  ))
+
 ;(deftest test-overlap
 ;  (let [d1 (date-time 1985)
 ;        d2 (date-time 1986)
@@ -509,16 +511,16 @@
 ;    (is (= (interval d2 d3) (overlap (interval d1 d3) (interval d2 d3))))
 ;    (is (nil? (overlap (interval d1 d2) (interval d2 d3))))
 ;    (is (nil? (overlap (interval d1 d2) (interval d3 d4))))))
-;
-;(deftest test-abuts?
-;  (let [d1 (date-time 1985)
-;        d2 (date-time 1986)
-;        d3 (date-time 1987)
-;        d4 (date-time 1988)]
-;    (is (abuts? (interval d1 d2) (interval d2 d3)))
-;    (is (not (abuts? (interval d1 d2) (interval d3 d4))))
-;    (is (not (abuts? (interval d1 d3) (interval d2 d3))))
-;    (is (abuts? (interval d2 d3) (interval d1 d2)))))
+
+(deftest test-abuts?
+  (let [d1 (date-time 1985)
+        d2 (date-time 1986)
+        d3 (date-time 1987)
+        d4 (date-time 1988)]
+    (is (abuts? (interval d1 d2) (interval d2 d3)))
+    (is (not (abuts? (interval d1 d2) (interval d3 d4))))
+    (is (not (abuts? (interval d1 d3) (interval d2 d3))))
+    (is (abuts? (interval d2 d3) (interval d1 d2)))))
 ;
 ;(deftest test-years?
 ;  (is (years? (years 2))))
